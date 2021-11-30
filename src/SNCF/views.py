@@ -191,7 +191,7 @@ def reserver(request):
     new_reservation.save()
     print(new_reservation)
     print(new_reservation.trajet)
-    return JsonResponse({"redirect": True})
+    return JsonResponse({"redirect": True, "new_reservation":new_reservation.id})
 
 
 # # @login_required(login_required, name='dispatch')

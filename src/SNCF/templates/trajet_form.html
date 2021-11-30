@@ -216,6 +216,7 @@
 <script>
     document.querySelector("#second_form_submission").addEventListener("click", event => {
         console.log(trajet_id);
+        console.log("id_reduction_form : ");
         console.log(document.getElementById("id_reduction_form").value);
         event.preventDefault();
         let form = new FormData();
@@ -231,14 +232,15 @@
                                                            body:form,
                                                            headers : {"X-CSRFToken": csrfTokenValue}
                                                            });
+        var new_reservation_id, redirection, redirect_url;
         fetch(request)
-            .then(response => response.json());
-            //.then(result => {
-            //    var redirection = result['redirect'];
-            //})
-
-        window.location.replace("{% url 'reservations' %}");
-
+            .then(response => response.json())
+            .then(result => {
+                redirection = result['redirect'];
+                let new_reservation_id = result['new_reservation'];
+                console.log("Id nouvelle resa : " + typeof new_reservation_id);
+                window.location.replace("{% url 'reservations' %}"+ new_reservation_id );
+            })
     });
 
 </script>

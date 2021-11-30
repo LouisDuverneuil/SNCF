@@ -14,7 +14,6 @@ class Reduction(models.Model):
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None, nom=None, prenom=None):
-        # TODO : ajouter un client lors de l'ajout d'un utilisateur. OU
         if not email:
             raise ValueError("Vous devez rentrer un email")
 

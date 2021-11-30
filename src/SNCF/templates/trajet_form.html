@@ -28,7 +28,8 @@
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{% static 'SNCF/css/main.css' %}">
     <script src="https://unpkg.com/htmx.org@1.6.1" integrity="sha384-tvG/2mnCFmGQzYC1Oh3qxQ7CkQ9kMzYjWZSNtrRZygHPDDqottzEJsqS4oUVodhW" crossorigin="anonymous"></script>
-
+<!--    <link rel="stylesheet" href="/bootstrap-sncf.min.css">-->
+    <link rel="stylesheet alternate" href="{% static 'SNCF/bootstrap-sncf/bootstrap-sncf.darkmode.min.css' %}">
     <!--    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>-->
 </head>
 <body>
@@ -102,11 +103,11 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ trajet.gare_depart }} - {{ trajet.gare_arrivee }}</h5>
-                    <p class="card-text">
+                    <h6 class="card-text">
                         Départ : {{ trajet.heure_depart }} -
                         Arrivée : {{ trajet.heure_arrivee }} <br>
-                        {{ trajet.prix }} {% if trajet.prix != "Complet" %}€{% endif %}
-                    </p>
+                        {% if trajet.prix != "Complet" %}Prix : {{ trajet.prix }} €{% else %} {{ trajet.prix }} {% endif %}
+                    </h6>
                     <div class="modal fade" tabindex="-1" role="dialog" id="modal">
                         <div class="modal-dialog" role="document">
                             <div class="modal-content"></div>
@@ -116,7 +117,7 @@
                     <!-- Create book button -->
                     <button id="create-reservation-{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}" aria-disabled="true"
                             type="button" name="button" data-toggle="modal" data-target="#exampleModalCenter"
-                            data-whatever="{{trajet.id}}|{{trajet.gare_depart}}|{{trajet.gare_arrivee}}|{{trajet.prix}}|{{trajet.heure_depart}}|{{trajet.heure_arrivee}}">
+                            data-whatever="{{trajet.id}}|{{trajet.gare_depart}}|{{trajet.gare_arrivee}}|{{trajet.prix}}|{{trajet.heure_depart}}|{{trajet.heure_arrivee}}|{{trajet.date_depart}}">
                         Réserver Trajet
                     </button>
                     <!--"{{trajet.gare_depart}} - {{trajet.gare_arrivee}}  {{trajet.heure_depart}} - {{trajet.heure_arrivee}}"-->
@@ -167,15 +168,16 @@
             <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Trajet</h5>
+                        <h4 class="modal-title" id="exampleModalLongTitle">Trajet</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
 
                     </div>
                     <div class="modal-body">
-                        <h6 class="modal-title2" id="exampleModalLongTitle2">Horaires</h6>
-                        <h7 class="modal-title3" id="exampleModalLongTitle3">Prix</h7>
+                        <h5 class="modal-title4" id="exampleModalLongTitle4">Le : {{ form.date_depart }}</h5>
+                        <h5 class="modal-title2" id="exampleModalLongTitle2">Horaires</h5>
+                        <h5 class="modal-title3" id="exampleModalLongTitle3">Prix</h5>
                         <hr>
 
                         <form action="post">

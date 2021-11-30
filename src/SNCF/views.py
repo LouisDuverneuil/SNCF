@@ -81,8 +81,6 @@ def trajet(request):
             query_string = urlencode(form.cleaned_data)
             url = f"{base_url}?{query_string}"
             return redirect(url)
-    elif request.method == "POST" and 'reservation' in request.POST:
-        print('you tried to save some resa')
     else:
         reduction_form = request.GET.get("reduction", "")
         initial = {'reduction': request.user.reduction} if reduction_form == "" else {}

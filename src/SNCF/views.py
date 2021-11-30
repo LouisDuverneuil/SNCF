@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http40
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.http import urlencode
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, DetailView
 
 from website.forms import SignupForm, TrajetForm, ReservationForm
 from website.models import CustomUser, Trajet, Gare, Reservation, Place, Voiture, Reduction
@@ -32,6 +32,12 @@ class SignupView(CreateView):
     success_url = reverse_lazy("account/login")
 
 
+class ReservationDetailView(DetailView):
+    model = Reservation
+    template_name = "detail-reservation.html"
+    # context_object_name = ""
+
+
 class ListReservations(LoginRequiredMixin, ListView):
     model = Reservation
     template_name = "list-reservations.html"
@@ -46,13 +52,6 @@ class ListReservations(LoginRequiredMixin, ListView):
         context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())
         context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
-
-
-class ReservationCreateView(BSModalCreateView):
-    template_name = 'create-reservation.html'
-    form_class = ReservationForm
-    success_message = 'Succès: Reservation confirmée.'
-    success_url = reverse_lazy('reservations')
 
 
 class CreateReservation(LoginRequiredMixin, CreateView):
@@ -76,7 +75,7 @@ def trajet(request):
     trajet_list = []
     if request.method == "POST" and 'recherche' in request.POST:
         form = TrajetForm(request.POST)
-        context['form']=form
+        context['form'] = form
         if form.is_valid():
             base_url = reverse('trajet')
             query_string = urlencode(form.cleaned_data)
@@ -86,7 +85,8 @@ def trajet(request):
         print('you tried to save some resa')
     else:
         reduction_form = request.GET.get("reduction", "")
-        initial = {'reduction': request.user.reduction} if reduction_form=="" else {}
+        initial = {
+            'reduction': request.user.reduction} if reduction_form == "" else {}
         form = TrajetForm(initial=initial)
         second_form = ReservationForm(user=request.user)
         context['form'] = form
@@ -102,14 +102,15 @@ def trajet(request):
             reduction = Reduction.objects.get(type=reduction_form)
             # date_depart = datetime.datetime.strptime(date_depart_form, '%Y-%m-%d')
             trajet_list = Trajet.objects.filter(
-                            gare_depart=gare_depart,
-                            gare_arrivee=gare_arrivee,
-                            heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
-                            date_depart=date_depart_form,
-                        ).order_by("heure_depart")
+                gare_depart=gare_depart,
+                gare_arrivee=gare_arrivee,
+                heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
+                date_depart=date_depart_form,
+            ).order_by("heure_depart")
             form.fields['gare_depart'].initial = gare_depart
             form.fields['gare_arrivee'].initial = gare_arrivee
-            form.fields['date_depart'].initial = datetime.datetime.strptime(date_depart_form, '%Y-%m-%d').strftime('%d/%m/%Y')
+            form.fields['date_depart'].initial = datetime.datetime.strptime(
+                date_depart_form, '%Y-%m-%d').strftime('%d/%m/%Y')
             form.fields['heure_depart'].initial = heure_depart_form
             form.fields['reduction'].initial = reduction
 
@@ -124,14 +125,15 @@ def trajet(request):
                     trajet.disabled = "disabled"
                 else:
                     # TODO : changer le prix en fonction du client.
-                    trajet.prix = round(trajet.prix * (1-reduction.pourcentage/100), 2)  # * (1-request)
+                    trajet.prix = round(
+                        trajet.prix * (1-reduction.pourcentage/100), 2)  # * (1-request)
                     trajet.disabled = ""
     # context['today'] = datetime.date.today()
     paginator = Paginator(trajet_list, 5)
     try:
         current_page = request.GET.get('page')
         if not current_page:
-            current_page=1
+            current_page = 1
         trajet_list = paginator.page(current_page)
         context['page_obj'] = paginator.get_page(current_page)
     except EmptyPage:
@@ -189,9 +191,7 @@ def reserver(request):
     new_reservation.save()
     print(new_reservation)
     print(new_reservation.trajet)
-    return JsonResponse({"redirect":True})
-
-
+    return JsonResponse({"redirect": True})
 
 
 # # @login_required(login_required, name='dispatch')

@@ -43,9 +43,8 @@ class ListReservations(LoginRequiredMixin, ListView):
     def get_context_data(self, ** kwargs):
         context = super().get_context_data(**kwargs)
         queries = self.get_queryset()
-        context["to_confirm_reservations"] = queries.filter(confirmation=False)
-        context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today()).filter(confirmation=True)
-        context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today(), confirmation=True)
+        context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())
+        context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
 
 
@@ -117,7 +116,7 @@ def trajet(request):
             trajet_list = list(trajet_list)
             for trajet in trajet_list:
                 # TODO : prendre la valeur de trajet correspondant au nombre de places restantes
-                reservations = Reservation.objects.filter(trajet=trajet, confirmation=True)
+                reservations = Reservation.objects.filter(trajet=trajet)
                 voitures = trajet.train.voiture_set.all() # Voiture.objects.filter(train=trajet.train)
                 nb_places = len(Place.objects.filter(voiture__in=voitures))
                 if len(reservations) == nb_places:
@@ -128,7 +127,7 @@ def trajet(request):
                     trajet.prix = round(trajet.prix * (1-reduction.pourcentage/100), 2)  # * (1-request)
                     trajet.disabled = ""
     # context['today'] = datetime.date.today()
-    paginator = Paginator(trajet_list, 1)
+    paginator = Paginator(trajet_list, 5)
     try:
         current_page = request.GET.get('page')
         if not current_page:
@@ -155,39 +154,31 @@ def reserver(request):
     print(trajet_id)
     # Réserve un trajet.
     request_trajet = Trajet.objects.get(id=trajet_id)
-    # Trouve une place
 
+    # Trouve une place
+    # Cherche les voitures du trajet pour trouver les places
     voitures = Voiture.objects.filter(train=request_trajet.train)
+    # Places du trajet
     places_trajet = Place.objects.filter(voiture__in=voitures)
+    # Reservations associées au trajet
     reservations = Reservation.objects.filter(trajet=request_trajet)
+    # Places déjà réservées
     places_reservees = list(map(lambda x: x.place, list(reservations)))
+    # Places du trajet disponibles
     places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees]).filter(situation=situation)
     print(places_dispo)
-    # TODO: filtre sur la situation
+    # Si aucune place dispo à cette situation, donner une place à une autre situation
     if len(places_dispo) == 0:
-        # Regarder parmis les places reservées non confirmees
-        reservations = reservations.filter(confirmation=True)
-        places_reservees = list(map(lambda x: x.place, list(reservations)))
-        places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees]).filter(situation=situation)
-    if len(places_dispo) == 0:
-        # regarder parmis les places ayant une autre situation
         places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees])
     if len(places_dispo) == 0:
-        # ne doit pas arriver si le formulaire n'est pas intentionnelement modifié
+        # ne doit pas arriver si le formulaire n'est pas (mal) intentionnellement modifié
         raise Http404("<h1>Aucune place disponible</h1>")
     # choix de la place en fonction de la demande de situation:
     place = random.choice(places_dispo)
     print(place)
-    # TODO : supprimer les trajets précédents non confirmés
-    old_reservations_not_confirmed = Reservation.objects.filter(user=request.user, confirmation=False).order_by("date")
-
-    # éviter de stocker trop de réservations non confirmées:
-    if len(old_reservations_not_confirmed)>5:
-        pass
 
     new_reservation = Reservation(
         user=request.user,
-        confirmation=False,
         trajet=request_trajet,
         nom=nom,
         prenom=prenom,

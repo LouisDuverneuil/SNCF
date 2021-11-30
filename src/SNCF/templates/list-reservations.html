@@ -21,23 +21,8 @@
     {% include 'navbar.html' %}
     <div class="container-fluid mg-t">
         <h2>Mes réservations</h2>
+        TODO : ajouter le numéro du billet
         {% block content %}
-        <h3> Réservations à confirmer</h3>
-        <ul>
-            TODO : ajouter le numéro du billet
-            {% for reservation in to_confirm_reservations %}
-            <div class="card text-black mb-3">
-                <h5 class="card-header">{{ reservation.trajet.gare_depart }} -> {{ reservation.trajet.gare_arrivee }}</h5>
-                <div class="card-body">
-                    <h5 class="card-title">{{ reservation.trajet.date_depart }}</h5>
-                    <b class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</b>
-                    <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
-                    <a href="#" class="btn btn-primary">Billet</a>
-                </div>
-            </div>
-            {% endfor %}
-        </ul>
-
         <h4>A venir</h4>
         <ul>
             {% for reservation in new_reservations %}

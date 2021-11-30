@@ -152,7 +152,7 @@ class Agence(models.Model):
 class Reservation(models.Model):
     # TODO : changer le client en user
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    confirmation = models.BooleanField()
+    # confirmation = models.BooleanField()
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE)
     prix = models.FloatField(blank=True, null=True)
     agence = models.ForeignKey(Agence, blank=True, null=True, on_delete=models.SET_NULL)
@@ -163,9 +163,10 @@ class Reservation(models.Model):
     date = models.DateTimeField()
 
     class Meta:
-        constraints = [
-            UniqueConstraint(fields=["trajet", "place"], condition=Q(confirmation=True), name="billet")
-        ]
+        unique_together = ("trajet", "place")
+        # constraints = [
+        #     UniqueConstraint(fields=["trajet", "place"], condition=Q(confirmation=True), name="billet")
+        # ]
         # unique_together = ("trajet", "place", "confirmation")
 
     def save(self, *args, **kwargs):

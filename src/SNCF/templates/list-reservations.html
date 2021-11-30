@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes réservations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'SNCF/css/main.css' %}">
+</head>
+<body>
+
+    {% include 'navbar.html' %}
+    <div class="container-fluid mg-t">
+        <h2>Mes réservations</h2>
+        {% block content %}
+        <h3> Réservations à confirmer</h3>
+        <ul>
+            TODO : ajouter le numéro du billet
+            {% for reservation in to_confirm_reservations %}
+            <div class="card text-black mb-3">
+                <h5 class="card-header">{{ reservation.trajet.gare_depart }} -> {{ reservation.trajet.gare_arrivee }}</h5>
+                <div class="card-body">
+                    <h5 class="card-title">{{ reservation.trajet.date_depart }}</h5>
+                    <b class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</b>
+                    <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
+                    <a href="#" class="btn btn-primary">Billet</a>
+                </div>
+            </div>
+            {% endfor %}
+        </ul>
+
+        <h4>A venir</h4>
+        <ul>
+            {% for reservation in new_reservations %}
+            <div class="card text-black mb-3">
+                <h5 class="card-header">{{ reservation.trajet.gare_depart }} -> {{ reservation.trajet.gare_arrivee }}</h5>
+                <div class="card-body">
+                    <h5 class="card-title">{{ reservation.trajet.date_depart }}</h5>
+                    <b class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</b>
+                    <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
+                    <a href="#" class="btn btn-primary">Billet</a>
+                </div>
+            </div>
+            {% endfor %}
+        </ul>
+
+        <h5>Reservations passées</h5>
+        <ul>
+            {% for reservation in old_reservations %}
+            <div class="card text-black mb-3">
+                <h6 class="card-header">{{ reservation.trajet.gare_depart }} -> {{ reservation.trajet.gare_arrivee }}</h6>
+                <div class="card-body">
+                    <h7 class="card-title">{{ reservation.trajet.date_depart }}</h7>
+                    <p class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</p>
+                    <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
+                    <a href="#" class="btn btn-primary">Billet</a>
+                </div>
+            </div>
+            {% endfor %}
+        </ul>
+        {% endblock %}
+
+<!--        <div class="pagination">-->
+<!--                <span class="step-links">-->
+<!--                    {% if page_obj.has_previous %}-->
+<!--                        <a href="?page=1">&laquo; first</a>-->
+<!--                        <a href="?page={{ page_obj.previous_page_number }}">previous</a>-->
+<!--                    {% endif %}-->
+
+<!--                    <span class="current">-->
+<!--                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.-->
+<!--                    </span>-->
+
+<!--                    {% if page_obj.has_next %}-->
+<!--                        <a href="?page={{ page_obj.next_page_number }}">next</a>-->
+<!--                        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>-->
+<!--                    {% endif %}-->
+<!--                </span>-->
+<!--        </div>-->
+    </div>
+
+</body>
+</html>

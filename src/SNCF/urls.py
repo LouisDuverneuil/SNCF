@@ -20,7 +20,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 # CreateReservation
-from .views import index, trajet, SignupView, ListReservations, ReservationDetailView, reserver
+from .views import index, trajet, SignupView, ListReservations, ReservationDetailView, reserver, trajet_prix
 
 urlpatterns = [
     path("", index, name="homepage"),
@@ -35,5 +35,6 @@ urlpatterns = [
          name='detail_reservation'),
     # path('trajet/reservation/', ReservationCreateView.as_view(), name='create_reservation'),
     path('trajet/reserver/', reserver, name="reserver"),
+    path('trajet/prix', trajet_prix, name='trajet_prix'),
     # path('trajet/reservation/', CreateReservation.as_view(), name='new-reservation')
 ]

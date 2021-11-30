@@ -85,8 +85,7 @@ def trajet(request):
         print('you tried to save some resa')
     else:
         reduction_form = request.GET.get("reduction", "")
-        initial = {
-            'reduction': request.user.reduction} if reduction_form == "" else {}
+        initial = {'reduction': request.user.reduction} if reduction_form == "" else {}
         form = TrajetForm(initial=initial)
         second_form = ReservationForm(user=request.user)
         context['form'] = form
@@ -194,77 +193,9 @@ def reserver(request):
     return JsonResponse({"redirect": True, "new_reservation":new_reservation.id})
 
 
-# # @login_required(login_required, name='dispatch')
-# class TrajetListView(ListView):
-#     model = Trajet
-#     template_name = "trajet-form.html"
-#     form_class = TrajetForm
-#
-#     def get_queryset(self):
-#         # sourcery skip: inline-immediately-returned-variable
-#         form = self.form_class(self.request.POST)
-#         trajet_list = Trajet.objects.filter(
-#             date_depart=form.fields["date_depart"],
-#             heure_depart__range=(form.fields["heure_depart"],  datetime.time(23, 59)),
-#             gare_depart=form.fields["gare_depart"],
-#             gare_arrivee = form.fields["gare_arrivee"],
-#         ).order_by("heure_depart")
-#
-#         # TODO : si aucun train, faire la recherche par ville.
-#         return trajet_list
-
-# @login_required
-# def trajet(request):
-#     filter = TrajetFilter(request.GET, queryset=Trajet.objects.all())
-#     print(filter.qs)
-#     return render(request, 'trajet_form.html', {'filter': filter})
-
-# @login_required
-# def trajet(request):
-#     context = {}
-#     if request.method == "POST":
-#         form = TrajetForm(request.POST)
-#     else:
-#         form = TrajetForm(request.POST)
-#         # trajet_list = []
-#     context['form'] = form
-#
-#     if form.is_valid():
-#         gare_depart_nom = form.cleaned_data["gare_depart"]
-#         gare_depart = Gare.objects.get(nom=gare_depart_nom)
-#
-#         gare_arrivee_nom = form.cleaned_data["gare_arrivee"]
-#         gare_arrivee = Gare.objects.get(nom=gare_arrivee_nom)
-#
-#         heure_depart_form = form.cleaned_data["heure_depart"]
-#         date_depart_form = form.cleaned_data["date_depart"]
-#
-#         trajet_list = Trajet.objects.filter(
-#             gare_depart=gare_depart,
-#             gare_arrivee=gare_arrivee,
-#             heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
-#             date_depart=date_depart_form,
-#         ).order_by("heure_depart")
-#         # check if each trajet has places remaining, else don't show it
-#         trajet_list = list(trajet_list)
-#         for trajet in trajet_list:
-#             # TODO : prendre la valeur de trajet correspondant au nombre de places restantes
-#             reservations = Reservation.objects.filter(trajet=trajet, confirmation=True)
-#             voitures = Voiture.objects.filter(train=trajet.train)
-#             nb_places = len(Place.objects.filter(voiture__in=voitures))
-#             if len(reservations) == nb_places:
-#                 # enlever trajet de la liste, il est complet.
-#                 # trajet_list.remove(trajet)
-#                 trajet.prix = "Complet"
-#                 trajet.disabled = "disabled"
-#             else:
-#                 # TODO : changer le prix en fonction du client.
-#                 trajet.prix = trajet.prix - 0.01  # * (1-request)
-#                 trajet.disabled = ""
-#     else:
-#         print("Is not valid")
-#         trajet_list = []
-#
-#     context["trajet_list"] = trajet_list
-#
-#     return render(request, "trajet_form.html", context)
+def trajet_prix(request):
+    trajet_id = int(request.POST.get("trajet_id"))
+    reduction = Reduction.objects.get(id=request.POST.get("reduction"))
+    trajet = Trajet.objects.get(pk=trajet_id)
+    prix = trajet.prix * (1 - reduction.pourcentage/100)
+    return JsonResponse({"prix": prix})

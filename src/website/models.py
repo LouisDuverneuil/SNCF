@@ -28,7 +28,8 @@ class MyUserManager(BaseUserManager):
         return user
 
     def create_super_user(self, email, password=None, nom=None, prenom=None):
-        user = self.create_user(email=email, password=password, nom=nom, prenom=prenom)
+        user = self.create_user(
+            email=email, password=password, nom=nom, prenom=prenom)
         user.is_admin = True
         user.is_staff = True
         user.save()
@@ -47,7 +48,8 @@ class CustomUser(AbstractBaseUser):
 
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
-    reduction = models.ForeignKey(Reduction, blank=True, null=True, on_delete=models.SET_NULL)
+    reduction = models.ForeignKey(
+        Reduction, blank=True, null=True, on_delete=models.SET_NULL)
 
     USERNAME_FIELD = "email"
     objects = MyUserManager()
@@ -110,7 +112,8 @@ class Ville(models.Model):
 
 
 class Gare(models.Model):
-    ville = models.ForeignKey(Ville, on_delete=models.CASCADE)  # TODO : changer en PROTECT ?
+    # TODO : changer en PROTECT ?
+    ville = models.ForeignKey(Ville, on_delete=models.CASCADE)
     nom = models.CharField(max_length=100)
 
     # TODO : ajouter une relation many to many pour les gares reliées ?
@@ -127,8 +130,10 @@ class Trajet(models.Model):
     prix = models.FloatField()
     train = models.ForeignKey(Train, on_delete=models.CASCADE)
     # TODO : PROTECT ? Un train ne peut pas être supprimé s'il a des trajets ?
-    gare_depart = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name="gare_depart")
-    gare_arrivee = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name="gare_arrivee")
+    gare_depart = models.ForeignKey(
+        Gare, on_delete=models.CASCADE, related_name="gare_depart")
+    gare_arrivee = models.ForeignKey(
+        Gare, on_delete=models.CASCADE, related_name="gare_arrivee")
     # TODO : ajouter variable nombre de places dispo dans le trajet.
     # complet = models.BooleanField(default=False)
     # TODO : vérifier que le train est apte à faire ce trajet
@@ -138,7 +143,8 @@ class Trajet(models.Model):
 class Client(models.Model):
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
-    reduction = models.ForeignKey(Reduction, blank=True, null=True, on_delete=models.SET_NULL)
+    reduction = models.ForeignKey(
+        Reduction, blank=True, null=True, on_delete=models.SET_NULL)
     mail = models.EmailField()
 
     def __str__(self):
@@ -155,16 +161,19 @@ class Reservation(models.Model):
     confirmation = models.BooleanField()
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE)
     prix = models.FloatField(blank=True, null=True)
-    agence = models.ForeignKey(Agence, blank=True, null=True, on_delete=models.SET_NULL)
+    agence = models.ForeignKey(
+        Agence, blank=True, null=True, on_delete=models.SET_NULL)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
-    reduction = models.ForeignKey(Reduction, null=True, on_delete=models.SET_NULL)
+    reduction = models.ForeignKey(
+        Reduction, null=True, on_delete=models.SET_NULL)
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
     date = models.DateTimeField()
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["trajet", "place"], condition=Q(confirmation=True), name="billet")
+            UniqueConstraint(fields=["trajet", "place"], condition=Q(
+                confirmation=True), name="billet")
         ]
         # unique_together = ("trajet", "place", "confirmation")
 

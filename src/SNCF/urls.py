@@ -23,13 +23,14 @@ from django.urls import path, include
 # CreateReservation
 from .views import index, trajet, SignupView, ListReservations, \
     ReservationDetailView, reserver, trajet_prix, \
-    billet_generator, GareAutoComplete
+    billet_generator, GareAutoComplete, change_password
 
 urlpatterns = [
     path("", index, name="homepage"),
     path('admin/', admin.site.urls),
     path("account/", include('django.contrib.auth.urls')),
     path('account/signup/', SignupView.as_view(), name="signup"),
+    path('account/password/', change_password, name='change_password'),
     path('trajet/', trajet, name="trajet"),
     path('reservations/', ListReservations.as_view(), name="reservations"),
     path('reservations/<slug:pk>', ReservationDetailView.as_view(),

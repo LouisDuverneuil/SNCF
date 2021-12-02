@@ -3,22 +3,47 @@
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
 {% load crispy_forms_tags %}
+{% load static %}
+
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Créez votre compte utilisateur</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'SNCF/css/main.css' %}">
 </head>
 <body>
+{% include 'navbar.html' %}
+<div class="container mg-t">
 
     <h1>Création d'un compte utilisateur.</h1>
 <!--    méthode post au lieu de get pour éviter d'envoyer le formulaire dans l'url, ce qui ne serait pas sécuritaire-->
-    <form method="POST">
+    <form method="POST" class="form-group">
         {% csrf_token %}
-        <table>
-            {{ form|crispy }}
-        </table>
+        <div class="row">
+            {{ form.email|as_crispy_field }}
+        </div>
+        <div class="row">
+            <div class="col">
+                {{ form.nom|as_crispy_field }}
+            </div>
+            <div class="col">
+                {{ form.prenom|as_crispy_field }}
+            </div>
+        </div>
+        <div class="row">
+            {{ form.reduction|as_crispy_field }}
+        </div>
+        <div class="row">
+            {{ form.password1|as_crispy_field }}
+        </div>
+        <div class="row">
+            {{ form.password2|as_crispy_field }}
+        </div>
+<!--        <table>-->
+<!--            {{ form|crispy }}-->
+<!--        </table>-->
 
         {% for message in errors.values %}
             <h2 style="color: red;">
@@ -28,6 +53,6 @@
 
         <input type="submit" class="btn btn-primary" value="S'inscrire"/>
     </form>
+</div>
 </body>
-{% include 'navbar.html' %}
 </html>

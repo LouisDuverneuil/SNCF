@@ -6,8 +6,11 @@ import random
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from bootstrap_modal_forms.generic import BSModalCreateView
 from dal import autocomplete
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage
 from django import forms
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, FileResponse
@@ -59,6 +62,22 @@ class ListReservations(LoginRequiredMixin, ListView):
         context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())
         context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
+
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Mot de passe changé avec succès!')
+            return redirect('change_password')
+        else:
+            messages.error(request, "Veuillez corriger l'erreur ci-dessus")
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'account/change_password.html', {
+        'form': form
+    })
 
 
 class CreateReservation(LoginRequiredMixin, CreateView):

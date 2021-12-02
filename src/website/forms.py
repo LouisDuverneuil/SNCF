@@ -1,3 +1,4 @@
+from dal import autocomplete
 from django import forms
 import datetime
 
@@ -5,7 +6,7 @@ from bootstrap_datepicker_plus import TimePickerInput
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import CustomUser, Trajet, Reduction
+from .models import CustomUser, Trajet, Reduction, Gare
 
 
 class SignupForm(UserCreationForm):
@@ -31,6 +32,10 @@ YEAR_CHOICE = [now.year, now.year + 1]
 class TrajetForm(forms.ModelForm):
     reduction = forms.ModelChoiceField(queryset=Reduction.objects.all().order_by("type"), required=False,
                                        label="Reduction", empty_label=None)
+    # gare_depart = forms.ModelChoiceField(
+    #     queryset=Gare.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url='gare-autocomplete')
+    # )
 
     class Meta:
         model = Trajet
@@ -42,7 +47,8 @@ class TrajetForm(forms.ModelForm):
         )
         widgets = {
             "date_depart": forms.SelectDateWidget(years=YEAR_CHOICE),
-            "heure_depart": TimePickerInput()
+            "heure_depart": TimePickerInput(),
+            # "gare_depart": autocomplete.ModelSelect2(url='gare-autocomplete'),
         }
 
 

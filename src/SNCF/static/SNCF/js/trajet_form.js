@@ -9,11 +9,6 @@ $(document).ready(function(){
         })
     });
 
-//$(document).ready(function() {
-//    $("#create-reservation").modalForm({
-//        formURL: "{% url 'create_reservation' %}"
-//    });
-//});
 
 var trajet, trajet_id,
 trajet_gare_depart, trajet_gare_arrivee, trajet_prix,

@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'bootstrap_modal_forms',
     'widget_tweaks',
     'SNCF',
+    'dal',
+    'dal_select2',
 ]
 
 MIDDLEWARE = [

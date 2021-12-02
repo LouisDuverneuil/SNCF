@@ -27,189 +27,223 @@
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{% static 'SNCF/css/main.css' %}">
-    <script src="https://unpkg.com/htmx.org@1.6.1" integrity="sha384-tvG/2mnCFmGQzYC1Oh3qxQ7CkQ9kMzYjWZSNtrRZygHPDDqottzEJsqS4oUVodhW" crossorigin="anonymous"></script>
-<!--    <link rel="stylesheet" href="/bootstrap-sncf.min.css">-->
+    <script src="https://unpkg.com/htmx.org@1.6.1"
+            integrity="sha384-tvG/2mnCFmGQzYC1Oh3qxQ7CkQ9kMzYjWZSNtrRZygHPDDqottzEJsqS4oUVodhW"
+            crossorigin="anonymous"></script>
+    <!--    <link rel="stylesheet" href="/bootstrap-sncf.min.css">-->
     <link rel="stylesheet alternate" href="{% static 'SNCF/bootstrap-sncf/bootstrap-sncf.darkmode.min.css' %}">
     <!--    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>-->
 </head>
 <body>
-    {% include 'navbar.html' %}
-    <div class="container mg-t">
-        <h1>Trouvez votre trajet en train</h1>
-        <!-- méthode post au lieu de get pour éviter d'envoyer le formulaire dans l'url, ce qui ne serait pas sécuritaire-->
-        <form class="form-group" method="POST">
-            {% csrf_token %}
-            {% block content %}
-            <form method="POST" class="row">
-                <div class="row">
-                    <div class="col">
-                        {{ form.gare_depart|as_crispy_field }}
-                    </div>
-                    <div class="col">
-                        {{ form.gare_arrivee|as_crispy_field }}
+{% include 'navbar.html' %}
+<div class="container mg-t">
+    <h1>Trouvez votre trajet en train</h1>
+    <!-- méthode post au lieu de get pour éviter d'envoyer le formulaire dans l'url, ce qui ne serait pas sécuritaire-->
+    <form class="form-group" method="POST">
+        {% csrf_token %}
+        {% block content %}
+        <form method="POST" class="row">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group" id="div_id_gare_depart">
+                        <label for="id_gare_depart" class=" requiredField">
+                            Gare départ<span class="asteriskField">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="id_gare_depart_text" placeholder="Rechercher une gare">
+                            <select name="gare_depart" class="w-80 form-control" required id="id_gare_depart">
+                                {% if gare_depart_value_initial %}
+                                <option value="{{gare_depart_value_initial_id}}" selected>{{gare_depart_value_initial}}</option>
+                                {% else %}
+                                <option value="" selected disabled>Gare recherchée</option>
+                                {% endif %}
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col">
-                        <!--                        {{ form.date_depart|as_crispy_field }}-->
-                        <div id="div_id_date_depart" class="form-group">
-                            <label for="id_date_depart" class="requiredField control-label" for="date">
-                                Date depart<span class="asteriskField">*</span>
-                            </label>
-                            <div>
-                                <div class="input-group date">
-                                    <input type="text" name="date_depart"
-                                           value="{% if form.date_depart.value == None %}{{today}}{% else %}{{form.date_depart.value}}{% endif %}"
-                                           class="form-control" required id="id_date_depart"/>
+                <div class="col">
+                    <div class="form-group" id="div_id_gare_arrivee">
+                        <label for="id_gare_arrivee" class=" requiredField">
+                            Gare arrivée<span class="asteriskField">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="id_gare_arrivee_text" placeholder="Rechercher une gare">
+                            <select name="gare_arrivee" class="w-80 form-control" required id="id_gare_arrivee">
+                                {% if gare_arrivee_value_initial %}
+                                <option value="{{gare_arrivee_value_initial_id}}" selected>{{gare_arrivee_value_initial}}</option>
+                                {% else %}
+                                <option value="" selected disabled>Commencer à écrire la gare recherchée</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <!--                        {{ form.date_depart|as_crispy_field }}-->
+                    <div id="div_id_date_depart" class="form-group">
+                        <label for="id_date_depart" class="requiredField control-label" for="date">
+                            Date depart<span class="asteriskField">*</span>
+                        </label>
+                        <div>
+                            <div class="input-group date">
+                                <input type="text" name="date_depart"
+                                       value="{% if form.date_depart.value == None %}{{today}}{% else %}{{form.date_depart.value}}{% endif %}"
+                                       class="form-control" required id="id_date_depart"/>
+                                <div class="input-group-text"><i class="glyphicon glyphicon-time"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <!--                        {{ form.heure_depart|as_crispy_field }}-->
+                    <div id="div_id_heure_depart" class="form-group">
+                        <label for="id_heure_depart" class=" requiredField">
+                            Heure depart<span class="asteriskField">*</span>
+                        </label>
+                        <div>
+                            <div class="input-group date">
+                                <input type="time" name="heure_depart" value="{{ form.heure_depart.value }}"
+                                       class="form-control timepickerinput form-control" required id="id_heure_depart"
+                                       dp_config="{&quot;id&quot;: &quot;dp_1&quot;, &quot;picker_type&quot;: &quot;TIME&quot;, &quot;linked_to&quot;: null, &quot;options&quot;: {&quot;showClose&quot;: true, &quot;showClear&quot;: true, &quot;showTodayButton&quot;: true, &quot;format&quot;: &quot;HH:mm&quot;}}"/>
+                                <div class="input-group-addon input-group-append" data-target="#datetimepicker1"
+                                     data-toggle="datetimepickerv">
                                     <div class="input-group-text"><i class="glyphicon glyphicon-time"></i></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <!--                        {{ form.heure_depart|as_crispy_field }}-->
-                        <div id="div_id_heure_depart" class="form-group">
-                            <label for="id_heure_depart" class=" requiredField">
-                                Heure depart<span class="asteriskField">*</span>
-                            </label>
-                            <div>
-                                <div class="input-group date">
-                                    <input type="time" name="heure_depart" value="{{ form.heure_depart.value }}"
-                                           class="form-control timepickerinput form-control" required id="id_heure_depart"
-                                           dp_config="{&quot;id&quot;: &quot;dp_1&quot;, &quot;picker_type&quot;: &quot;TIME&quot;, &quot;linked_to&quot;: null, &quot;options&quot;: {&quot;showClose&quot;: true, &quot;showClear&quot;: true, &quot;showTodayButton&quot;: true, &quot;format&quot;: &quot;HH:mm&quot;}}"/>
-                                    <div class="input-group-addon input-group-append" data-target="#datetimepicker1"
-                                         data-toggle="datetimepickerv">
-                                        <div class="input-group-text"><i class="glyphicon glyphicon-time"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    {{ form.reduction|as_crispy_field }}
-                </div>
-
-                <input type="submit" class="btn btn-primary btn-block" value="Rechercher" name="recherche"/>
-            </form>
-            <br>
-            <br>
-            <!--        filter.qs-->
-            {% for trajet in trajet_list %}
-            <div class="card text-center text-dark mb-3">
-                <div class="card-header">
-                    {{ trajet.date_depart }}
-                    {{ trajet.heure_depart }}
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ trajet.gare_depart }} - {{ trajet.gare_arrivee }}</h5>
-                    <h6 class="card-text">
-                        Départ : {{ trajet.heure_depart }} -
-                        Arrivée : {{ trajet.heure_arrivee }} <br>
-                        {% if trajet.prix != "Complet" %}Prix : {{ trajet.prix }} €{% else %} {{ trajet.prix }} {% endif %}
-                    </h6>
-                    <div class="modal fade" tabindex="-1" role="dialog" id="modal">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content"></div>
-                        </div>
-                    </div>
-
-                    <!-- Create book button -->
-                    <button id="create-reservation-{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}" aria-disabled="true"
-                            type="button" name="button" data-toggle="modal" data-target="#exampleModalCenter"
-                            data-whatever="{{trajet.id}}|{{trajet.gare_depart}}|{{trajet.gare_arrivee}}|{{trajet.prix}}|{{trajet.heure_depart}}|{{trajet.heure_arrivee}}|{{trajet.date_depart}}">
-                        Réserver Trajet
-                    </button>
-                    <!--"{{trajet.gare_depart}} - {{trajet.gare_arrivee}}  {{trajet.heure_depart}} - {{trajet.heure_arrivee}}"-->
-                    <!--                        <a href="reservation/{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}" aria-disabled="true">Réserver</a>-->
                 </div>
             </div>
-            {% endfor %}
-            {% endblock %}
+            <div class="row">
+                {{ form.reduction|as_crispy_field }}
+            </div>
 
-            <nav aria-label="...">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Précédente</a>
-                    </li>
-                    {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link">Précédente</span>
-                    </li>
-                    {% endif %}
-
-                    {% for N in page_obj.paginator.page_range %}
-                        {% if N == page_obj.number %}
-                            <li class="page-item disabled">
-                                <span class="page-link">{{N}}</span>
-                            </li>
-                        {% else %}
-                            <li class="page-item"><a class="page-link" href="?{% param_replace page=N %}">{{N}}</a></li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?{% param_replace page=page_obj.next_page_number %}">Suivante</a>
-                    </li>
-                    {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link">Suivante</span>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+            <input type="submit" class="btn btn-primary btn-block" value="Rechercher" name="recherche"/>
         </form>
-
-        <!-- Modal -->
-        <div class="modal fade text-dark" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="exampleModalLongTitle">Trajet</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-
+        <br>
+        <br>
+        <!--        filter.qs-->
+        {% for trajet in trajet_list %}
+        <div class="card text-center text-dark mb-3">
+            <div class="card-header">
+                {{ trajet.date_depart }}
+                {{ trajet.heure_depart }}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ trajet.gare_depart }} - {{ trajet.gare_arrivee }}</h5>
+                <h6 class="card-text">
+                    Départ : {{ trajet.heure_depart }} -
+                    Arrivée : {{ trajet.heure_arrivee }} <br>
+                    {% if trajet.prix != "Complet" %}Prix : {{ trajet.prix }} €{% else %} {{ trajet.prix }} {% endif %}
+                </h6>
+                <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content"></div>
                     </div>
-                    <div class="modal-body">
-                        <h5 class="modal-title4" id="exampleModalLongTitle4">Le : {{ form.date_depart }}</h5>
-                        <h5 class="modal-title2" id="exampleModalLongTitle2">Horaires</h5>
-                        <h5 class="modal-title3" id="exampleModalLongTitle3">Prix</h5>
-                        <hr>
+                </div>
 
-                        <form action="post">
-                            {% csrf_token %}
-                            <div class="row">
-                                {{ second_form.if_user|as_crispy_field }}
+                <!-- Create book button -->
+                <button id="create-reservation-{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}"
+                        aria-disabled="true"
+                        type="button" name="button" data-toggle="modal" data-target="#exampleModalCenter"
+                        data-whatever="{{trajet.id}}|{{trajet.gare_depart}}|{{trajet.gare_arrivee}}|{{trajet.prix}}|{{trajet.heure_depart}}|{{trajet.heure_arrivee}}|{{trajet.date_depart}}">
+                    Réserver Trajet
+                </button>
+                <!--"{{trajet.gare_depart}} - {{trajet.gare_arrivee}}  {{trajet.heure_depart}} - {{trajet.heure_arrivee}}"-->
+                <!--                        <a href="reservation/{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}" aria-disabled="true">Réserver</a>-->
+            </div>
+        </div>
+        {% endfor %}
+        {% endblock %}
+
+        <nav aria-label="...">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Précédente</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Précédente</span>
+                </li>
+                {% endif %}
+
+                {% for N in page_obj.paginator.page_range %}
+                {% if N == page_obj.number %}
+                <li class="page-item disabled">
+                    <span class="page-link">{{N}}</span>
+                </li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="?{% param_replace page=N %}">{{N}}</a></li>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% param_replace page=page_obj.next_page_number %}">Suivante</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Suivante</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </form>
+
+    {% if second_form %}
+    <!-- Modal -->
+    <div class="modal fade text-dark" id="exampleModalCenter" tabindex="-1" role="dialog"
+         aria-labelledby="myLargeModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="exampleModalLongTitle">Trajet</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+                <div class="modal-body">
+                    <h5 class="modal-title4" id="exampleModalLongTitle4">Le : {{ form.date_depart }}</h5>
+                    <h5 class="modal-title2" id="exampleModalLongTitle2">Horaires</h5>
+                    <h5 class="modal-title3" id="exampleModalLongTitle3">Prix</h5>
+                    <hr>
+
+                    <form action="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            {{ second_form.if_user|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            {{ second_form.reduction|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                {{ second_form.nom|as_crispy_field }}
+                            </div>
+                            <div class="col" id="prenom">
+                                {{ second_form.prenom|as_crispy_field }}
                             </div>
                             <div class="row">
-                                {{ second_form.reduction|as_crispy_field }}
+                                {{ second_form.situation|as_crispy_field }}
                             </div>
-                            <div class="row">
-                                <div class="col">
-                                    {{ second_form.nom|as_crispy_field }}
-                                </div>
-                                <div class="col" id="prenom">
-                                    {{ second_form.prenom|as_crispy_field }}
-                                </div>
-                                <div class="row">
-                                    {{ second_form.situation|as_crispy_field }}
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                                <input type="submit" class="btn btn-primary" value="Réserver" id="second_form_submission"/>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                            <input type="submit" class="btn btn-primary" value="Réserver" id="second_form_submission"/>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-
     </div>
+    {% endif %}
+
+</div>
 
 </body>
 
@@ -222,11 +256,13 @@
 <script type="text/javascript" src="{% static 'SNCF/js/trajet_form.js' %}"></script>
 
 {% for trajet in trajet_list %}
-    <script type="text/javascript">
+<script type="text/javascript">
         document.querySelector("#create-reservation-{{trajet.id}}").addEventListener('click', event => {
             document.getElementById("id_reduction_form").value = document.getElementById("id_reduction").value;
         });
-    </script>
+
+
+</script>
 {% endfor %}
 
 <script type="text/javascript">
@@ -252,6 +288,8 @@
             })
 
     });
+
+
 </script>
 
 <script>
@@ -281,6 +319,89 @@
                 let new_reservation_id = result['new_reservation'];
                 console.log("Id nouvelle resa : " + typeof new_reservation_id);
                 window.location.replace("{% url 'reservations' %}"+ new_reservation_id );
+            })
+    });
+
+
+</script>
+
+<script type="text/javascript">
+    document.querySelector("#id_gare_arrivee_text").addEventListener('input', event => {
+        console.log("change in gare_arrivee");
+        event.preventDefault();
+        let gare_form = new FormData();
+        gare_form.append("gare_text", document.getElementById("id_gare_arrivee_text").value);
+
+        let csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let request = new Request("{% url 'gare-autocomplete' %}", {method : "POST",
+                                                                   body:gare_form,
+                                                                   headers : {"X-CSRFToken": csrfTokenValue}
+                                                                   });
+        var select = document.getElementById('id_gare_arrivee');
+
+        fetch(request)
+            .then(response => response.json())
+            .then(result => {
+                console.log(result)
+                var select = document.getElementById('id_gare_arrivee');
+                select.innerHTML = "";
+                console.log(select.length)
+                for (const key in result){
+                    console.log(key)
+
+                    var opt = document.createElement('option');
+                    opt.value = result[key];
+                    opt.innerHTML = key;
+                    select.appendChild(opt);
+                }
+                if (result.len == 0) {
+                    var opt = document.createElement('option');
+                    opt.value = "";
+                    opt.disabled = true;
+                    opt.innerHTML = "Pas de résultat";
+                    select.appendChild(opt);
+                }
+            })
+    });
+</script>
+
+
+<script type="text/javascript">
+    document.querySelector("#id_gare_depart_text").addEventListener('input', event => {
+        console.log("change in gare_depart");
+        event.preventDefault();
+        let gare_form = new FormData();
+        gare_form.append("gare_text", document.getElementById("id_gare_depart_text").value);
+
+        let csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let request = new Request("{% url 'gare-autocomplete' %}", {method : "POST",
+                                                                   body:gare_form,
+                                                                   headers : {"X-CSRFToken": csrfTokenValue}
+                                                                   });
+        var select = document.getElementById('id_gare_depart');
+
+        fetch(request)
+            .then(response => response.json())
+            .then(result => {
+                console.log(result)
+                var select = document.getElementById('id_gare_depart');
+                select.innerHTML = "";
+                console.log(select.length)
+                for (const key in result){
+                    console.log(key)
+
+                    var opt = document.createElement('option');
+                    opt.value = result[key];
+                    opt.innerHTML = key;
+                    select.appendChild(opt);
+                }
+<!--                if (Object.keys(result).length == 0) {-->
+<!--                    var opt = document.createElement('option');-->
+<!--                    opt.value = "";-->
+<!--                    opt.disabled = true;-->
+<!--                    opt.innerHTML = "Pas de résultat";-->
+<!--                    select.appendChild(opt);-->
+<!--                }-->
             })
     });
 </script>

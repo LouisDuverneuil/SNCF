@@ -1,16 +1,23 @@
 import datetime
+import io
+import os
 import random
 
+from PyPDF2 import PdfFileReader, PdfFileWriter
 from bootstrap_modal_forms.generic import BSModalCreateView
+from dal import autocomplete
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, EmptyPage
 from django import forms
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, FileResponse
 from django.shortcuts import render, redirect
+from django.templatetags.static import static
 from django.urls import reverse_lazy, reverse
 from django.utils.http import urlencode
 from django.views.generic import CreateView, ListView, DetailView
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 from website.forms import SignupForm, TrajetForm, ReservationForm
 from website.models import CustomUser, Trajet, Gare, Reservation, Place, Voiture, Reduction
@@ -75,12 +82,14 @@ def trajet(request):
     trajet_list = []
     if request.method == "POST" and 'recherche' in request.POST:
         form = TrajetForm(request.POST)
+        print(request.POST)
         context['form'] = form
         if form.is_valid():
             base_url = reverse('trajet')
             query_string = urlencode(form.cleaned_data)
             url = f"{base_url}?{query_string}"
-            return redirect(url)
+            context["gare_arrivee_value_initial"] = request.GET.get("gare_depart", "")
+            return redirect(url, context)
     else:
         reduction_form = request.GET.get("reduction", "")
         initial = {'reduction': request.user.reduction} if reduction_form == "" else {}
@@ -92,20 +101,36 @@ def trajet(request):
         gare_depart_form = request.GET.get("gare_depart", "")
         gare_arrivee_form = request.GET.get("gare_arrivee", "")
         heure_depart_form = request.GET.get("heure_depart", "")
+        print("gare_arrivee_form")
 
         if gare_depart_form != '':
             gare_depart = Gare.objects.get(nom=gare_depart_form)
             gare_arrivee = Gare.objects.get(nom=gare_arrivee_form)
             reduction = Reduction.objects.get(type=reduction_form)
-            # date_depart = datetime.datetime.strptime(date_depart_form, '%Y-%m-%d')
+            date_depart = datetime.datetime.strptime(date_depart_form, '%Y-%m-%d')
+            context["gare_arrivee_value_initial"] = gare_arrivee_form
+            context["gare_arrivee_value_initial_id"] = gare_arrivee.id
+            context["gare_depart_value_initial"] = gare_depart_form
+            context["gare_depart_value_initial_id"] = gare_depart.id
             trajet_list = Trajet.objects.filter(
                 gare_depart=gare_depart,
                 gare_arrivee=gare_arrivee,
                 heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
                 date_depart=date_depart_form,
             ).order_by("heure_depart")
-            form.fields['gare_depart'].initial = gare_depart
-            form.fields['gare_arrivee'].initial = gare_arrivee
+            # trajet_list = Trajet.objects.raw("""SELECT "website_trajet"."id", "website_trajet"."date_depart",
+            # "website_trajet"."heure_depart", "website_trajet"."date_arrivee", "website_trajet"."heure_arrivee",
+            # "website_trajet"."prix", "website_trajet"."train_id", "website_trajet"."gare_depart_id",
+            # "website_trajet"."gare_arrivee_id"
+            # FROM "website_trajet"
+            # WHERE ("website_trajet"."date_depart" =
+            # %s AND "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
+            # "website_trajet"."heure_depart" BETWEEN %s AND 23:59:00) ORDER BY "website_trajet"."heure_depart"
+            # ASC""", [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), heure_depart_form]) # date_depart_form , heure_depart_form
+            print(f"107 : trajet_list.query : {trajet_list.query}")
+
+            form.fields['gare_depart'].initial = gare_depart.nom
+            form.fields['gare_arrivee'].initial = gare_arrivee.nom
             form.fields['date_depart'].initial = datetime.datetime.strptime(
                 date_depart_form, '%Y-%m-%d').strftime('%d/%m/%Y')
             form.fields['heure_depart'].initial = heure_depart_form
@@ -197,3 +222,50 @@ def trajet_prix(request):
     trajet = Trajet.objects.get(pk=trajet_id)
     prix = trajet.prix * (1 - reduction.pourcentage/100)
     return JsonResponse({"prix": prix})
+
+
+@login_required
+def billet_generator(request, reservation_id):
+    # vérifie que le user est le propiétaire de la réservation
+    reservation = Reservation.objects.get(pk=reservation_id)
+    if request.user != reservation.user:
+        return HttpResponse("<h1> Billet introuvable </h1>")
+
+    # créer le pdf du billet :
+    # Create a file-like buffer to receive PDF data.
+
+    buffer = open('SNCF/'+static('SNCF/img/e-billet.pdf'), 'r+')
+    # Create the PDF object, using the buffer as its "file."
+    p = canvas.Canvas(buffer)
+    # Draw things on the PDF. Here's where the PDF generation happens.
+    # See the ReportLab documentation for the full list of functionality.
+    # TODO : changer le pdf et mettre toutes les infos
+    p.drawString(10, 10, "C'est mon pdffffffff.")
+
+    # Close the PDF object cleanly, and we're done.
+    p.showPage()
+    # p.save()
+
+    # FileResponse sets the Content-Disposition header so that browsers
+    # present the option to save the file.
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=False, filename='hello.pdf')
+
+
+@login_required
+def GareAutoComplete(request):
+    gare_text = request.POST.get("gare_text")
+    gares = Gare.objects.filter(nom__icontains=gare_text).order_by("nom")
+    context = {gare.nom: gare.id for gare in gares}
+    return JsonResponse(context)
+
+
+class GareAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            print('not authentificated')
+            return Gare.objects.none()
+        qs = Gare.objects.all()
+        if self.q:
+            qs = qs.filter(nom__icontains=self.q)
+        return qs

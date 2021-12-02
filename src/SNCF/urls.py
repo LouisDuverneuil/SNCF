@@ -15,12 +15,15 @@ Including another URLconf
 """
 import django.contrib.auth.urls
 from django.conf import settings
+from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
 # CreateReservation
-from .views import index, trajet, SignupView, ListReservations, ReservationDetailView, reserver, trajet_prix
+from .views import index, trajet, SignupView, ListReservations, \
+    ReservationDetailView, reserver, trajet_prix, \
+    billet_generator, GareAutoComplete
 
 urlpatterns = [
     path("", index, name="homepage"),
@@ -29,12 +32,11 @@ urlpatterns = [
     path('account/signup/', SignupView.as_view(), name="signup"),
     path('trajet/', trajet, name="trajet"),
     path('reservations/', ListReservations.as_view(), name="reservations"),
-    # path('reservations/(?P<pk>\d+)', ReservationDetailView.as_view(),
-    #      name='detail_reservation'),
     path('reservations/<slug:pk>', ReservationDetailView.as_view(),
          name='detail_reservation'),
-    # path('trajet/reservation/', ReservationCreateView.as_view(), name='create_reservation'),
     path('trajet/reserver/', reserver, name="reserver"),
     path('trajet/prix', trajet_prix, name='trajet_prix'),
-    # path('trajet/reservation/', CreateReservation.as_view(), name='new-reservation')
+    path('billet/<slug:reservation_id>/', billet_generator, name='billet'),
+    path('trajet/gare-autocomplete/', GareAutoComplete, name='gare-autocomplete'),
+    # url(r'^gare-autocomplete/$', GareAutocomplete.as_view(), name='gare-autocomplete'),
 ]

@@ -1,6 +1,7 @@
 body {
     background-color: black;
     color: white;
+    padding-top:70px;
 }
 .container-fluid {
  margin-top: 70px;

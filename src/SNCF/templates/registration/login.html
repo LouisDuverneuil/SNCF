@@ -24,7 +24,7 @@
             {{ form|crispy }}
         </table>
         <a class="dropdown-item" href="/account/signup/" style="color:white">Petit nouveau ? Créé un compte</a>
-        <a class="dropdown-item" href="#" style="color:white">Mot de passe oublié ?</a>
+        <a class="dropdown-item" href="/account/password/" style="color:white">Changer de mot de passe ?</a>
 
         {% for message in errors.values %}
             <h2 style="color: red;">

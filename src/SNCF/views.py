@@ -18,8 +18,8 @@ from django.shortcuts import render, redirect
 from django.templatetags.static import static
 from django.urls import reverse_lazy, reverse
 from django.utils.http import urlencode
-from django.views.generic import CreateView, ListView, DetailView
-from reportlab.lib.pagesizes import letter
+from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.core.exceptions import PermissionDenied
 from reportlab.pdfgen import canvas
 
 from website.forms import SignupForm, TrajetForm, ReservationForm
@@ -41,8 +41,32 @@ class SignupView(CreateView):
     form_class = SignupForm
     success_url = reverse_lazy("account/login")
 
+    def get_context_data(self, ** kwargs):
+        context = super().get_context_data(**kwargs)
+        print(self.request.user)
+        print(type(self.request.user))
+        print(self.request.user == "AnonymousUser")
+        return context
 
-class ReservationDetailView(DetailView):
+
+
+class DetailUser(LoginRequiredMixin, UpdateView):
+    model = CustomUser
+
+
+class DoesLoggedInUserOwnThisRowMixin:
+    pass
+
+
+class UpdateUser(LoginRequiredMixin, UpdateView):
+    model = CustomUser
+    template_name = "account/signup.html"
+    form_class = SignupForm
+    success_url = reverse_lazy("homepage") # TODO : changer en detail user
+
+
+
+class ReservationDetailView(LoginRequiredMixin, DetailView):
     model = Reservation
     template_name = "detail-reservation.html"
     # context_object_name = ""
@@ -52,6 +76,8 @@ class ListReservations(LoginRequiredMixin, ListView):
     model = Reservation
     template_name = "list-reservations.html"
     # paginate_by = 2
+    permission_denied_message = "Hop Hop Hop, où vas-tu petit coquin. Connectes toi pour en voir plus"
+
 
     def get_queryset(self):
         return Reservation.objects.filter(user=self.request.user).order_by("-trajet__date_depart")
@@ -62,6 +88,7 @@ class ListReservations(LoginRequiredMixin, ListView):
         context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())
         context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
+
 
 def change_password(request):
     if request.method == 'POST':
@@ -91,6 +118,7 @@ class CreateReservation(LoginRequiredMixin, CreateView):
     widgets = {
         'trajet': forms.Textarea(attrs={'readonly': 'readonly'})
     }
+    permission_denied_message = "Hop Hop Hop, où vas-tu petit coquin. Connectes toi pour en voir plus"
 
     # form = CreateReservation
 

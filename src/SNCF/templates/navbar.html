@@ -5,7 +5,7 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav">
-          {% if user %}
+          {% if user and not user.is_anonymous %}
           <li class="nav-item">
             <a class="nav-link" {% if nav_bar == 'home' %}active{% endif %} aria-current="page" href="/">Home</a> {# eventually add active #}
           </li>

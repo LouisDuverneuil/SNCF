@@ -30,9 +30,9 @@ from website.models import CustomUser, Trajet, Gare, Reservation, Place, Voiture
 def index(request):
     context = {"date": datetime.date.today()}
     try:
-        context["user"] = request.user.nom
+        context["user_nom"] = request.user.nom
     except AttributeError:
-        context["user"] = ""
+        context["user_nom"] = ""
     return render(request, "index.html", context)
 
 

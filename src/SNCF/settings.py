@@ -135,7 +135,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# STATIC_ROOT = BASE_DIR / "staticfiles"
 AUTH_USER_MODEL = "website.CustomUser"
 
 # Default primary key field type
@@ -144,7 +144,7 @@ AUTH_USER_MODEL = "website.CustomUser"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = "/account/login/"
 LOGIN_REDIRECT_URL = "homepage"
-LOGOUT_REDIRECT_URL = "homepage"
+LOGOUT_REDIRECT_URL = "/account/login/"
 # SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 STATICFILES_DIRS = [

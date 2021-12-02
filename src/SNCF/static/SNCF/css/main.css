@@ -1,8 +1,11 @@
 body {
     background-color: black;
     color: white;
-    padding-top:70px;
+    margin-top:80px;
 }
-.container-fluid {
- margin-top: 70px;
+nav .navbar-nav li a{
+    color: black !important;
+}
+.datepicker {
+    margin-top: 80px;
 }

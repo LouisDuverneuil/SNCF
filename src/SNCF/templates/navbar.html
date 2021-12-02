@@ -1,35 +1,84 @@
 {% load static %}
 <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
-        <nav class="navbar navbar-light bg-light">
-            <a class="navbar-brand" href="/">
-                <img src="{% static 'SNCF/img/sncf.png' %}" width="50" height="30" alt="">
-            </a>
-        </nav>
-      <div class="collapse navbar-collapse" id="navbarNavDropdown">
-        <ul class="navbar-nav">
-          {% if user %}
-          <li class="nav-item">
-            <a class="nav-link" {% if nav_bar == 'home' %}active{% endif %} aria-current="page" href="/">Home</a> {# eventually add active #}
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" {% if context.nav_bar == 'trajet' %}active{% endif %}  href="{% url 'trajet' %}">Trajets</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" {% if context.nav_bar == 'reservations' %}active{% endif %}  href="{% url 'reservations' %}">Mes Réservations</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/admin">Admin</a>
-          </li>
-          {% else %}
-          <li>
-            <a href="/account/login" class="nav-link">login</a>
-          </li>
-          <li>
-              <div class="btn-nav"><a class="btn btn-primary btn-small navbar-btn" href="/account/signup/">Signup!</a>
-              </div>
-          </li>
-          {% endif %}
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="/">
+            <img src="{% static 'SNCF/img/sncf.png' %}" width="50" height="30" alt="">
+        </a>
+    </nav>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarText">
+        <ul class="navbar-nav mr-auto">
+            {% if user and not user.is_anonymous %}
+            <li class="nav-item">
+                <a class="nav-link" {% if nav_bar == 'home' %}active{% endif %} aria-current="page" href="/">Home</a> {#eventually add active #}
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" {% if context.nav_bar == 'trajet' %}active{% endif %} href="{% url 'trajet' %}">Trajets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" {% if context.nav_bar == 'reservations' %}active{% endif %} href="{% url 'reservations' %}">Mes Réservations</a>
+            </li>
+            {% else %}
+            <li>
+                <button class="btn btn-outline-secondary my-2 my-sm-0" onclick="location.href='/account/login/';">Se connecter</button>
+            </li>
+            <li>
+                <button class="btn btn-outline-secondary my-2 my-sm-0" onclick="location.href='/account/signup/';">S'inscrire</button>
+            </li>
+            {% endif %}
         </ul>
+        {% if user and not user.is_anonymous %}
+        <ul class="navbar-nav navbar-right">
+            <li><a class="nav-link" href="{% url 'detail-profile' pk=user.id %}">Mon Compte</a></li>
+            {% if user.is_staff %}
+                <li class="nav-item">
+                    <a class="nav-link" href="admin/">Admin</a>
+                </li>
+            {% endif %}
+            <button class="btn btn-outline-danger my-2 my-sm-0" onclick="location.href='account/logout/';">Deconnexion</button>
 
-      </div>
-  </nav>
+        </ul>
+        {% endif %}
+    </div>
+</nav>
+
+<!--<nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">-->
+<!--        <nav class="navbar navbar-light bg-light">-->
+<!--            <a class="navbar-brand" href="/">-->
+<!--                <img src="{% static 'SNCF/img/sncf.png' %}" width="50" height="30" alt="">-->
+<!--            </a>-->
+<!--        </nav>-->
+<!--    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">-->
+<!--        <span class="navbar-toggler-icon"></span>-->
+<!--    </button>-->
+<!--      <div class="collapse navbar-collapse" id="navbarNavDropdown">-->
+<!--        <ul class="navbar-nav mr-auto">-->
+<!--          {% if user %}-->
+<!--          <li class="nav-item">-->
+<!--            <a class="nav-link" {% if nav_bar == 'home' %}active{% endif %} aria-current="page" href="/">Home</a> {# eventually add active #}-->
+<!--          </li>-->
+<!--          <li class="nav-item">-->
+<!--            <a class="nav-link" {% if context.nav_bar == 'trajet' %}active{% endif %}  href="{% url 'trajet' %}">Trajets</a>-->
+<!--          </li>-->
+<!--          <li class="nav-item">-->
+<!--            <a class="nav-link" {% if context.nav_bar == 'reservations' %}active{% endif %}  href="{% url 'reservations' %}">Mes Réservations</a>-->
+<!--          </li>-->
+<!--          <li class="nav-item">-->
+<!--            <a class="nav-link" href="/admin">Admin</a>-->
+<!--          </li>-->
+<!--          {% else %}-->
+<!--          <li>-->
+<!--            <a href="/account/login" class="nav-link">login</a>-->
+<!--          </li>-->
+<!--          <li>-->
+<!--              <div class="btn-nav"><a class="btn btn-primary btn-small navbar-btn" href="/account/signup/">Signup!</a>-->
+<!--              </div>-->
+<!--          </li>-->
+<!--          {% endif %}-->
+<!--        </ul>-->
+
+<!--      </div>-->
+<!--  </nav>-->

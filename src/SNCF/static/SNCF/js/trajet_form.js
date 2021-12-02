@@ -1,11 +1,16 @@
 $(document).ready(function(){
-        var date_input=$('input[name="date_depart"]'); //our date input has the name "date"
+        var nowDate = new Date();
+        var today = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate(), 0, 0, 0, 0);
+        var date_input=$('input[name="date_depart"]');
         var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+        console.log(date_input);
         date_input.datepicker({
             format: 'dd/mm/yyyy',
             container: container,
             todayHighlight: true,
             autoclose: true,
+            language: 'fr',
+            startDate: today
         })
     });
 

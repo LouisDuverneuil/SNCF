@@ -20,26 +20,35 @@
 
     {% include 'navbar.html' %}
     <div class="container mg-t">
-        <h2>Récapitulatif de ma réservation</h2>
+        <h1>Mon compte</h1>
         {% block content %}
-        
-        {{ object.prenom }} {{ object.nom }}
+
+        <div class="row">
+            <h4>
+                Nom : {{ object.nom }}
+            </h4>
+        </div>
+        <div class="row">
+            <h4>
+                Prénom : {{ object.prenom }}
+            </h4>
+        </div>
+        <div class="row">
+            <h4>
+                Adresse Mail : {{ object.email }}
+            </h4>
+        </div>
+        <div class="row">
+            <h4>
+                Réduction : {{ object.reduction }}
+            </h4>
+        </div>
         <br>
-        Départ de {{ object.trajet.gare_depart }} le {{ object.trajet.date_depart}} à {{ object.trajet.heure_depart }}
-        <br>
-        Arrivée à {{ object.trajet.gare_arrivee }} le {{ object.trajet.date_arrivee}} à {{ object.trajet.heure_arrivee }}
-        <br>
-        Prix : {{ object.prix}}
-        <br>
-        Train n° {{ object.trajet.train.id }}
-        <br>
-        Voiture n° {{ object.place.voiture }}, place n° {{ object.place.numero }}
-        ({% if object.place.situation == "C"%}
-            Couloir
-        {% else %}
-            Fenêtre
-        {% endif %})
-        
+
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'change-password' %}">Changer de mot de passe</a>
+        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'update-profile' pk=user.id %}">Editer tout mon profile</a>
+
+
         {% endblock %}
     </div>
 

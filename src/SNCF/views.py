@@ -2,6 +2,7 @@ import datetime
 import io
 import os
 import random
+from abc import ABC
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from bootstrap_modal_forms.generic import BSModalCreateView
@@ -9,7 +10,7 @@ from dal import autocomplete
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage
 from django import forms
@@ -41,35 +42,33 @@ class SignupView(CreateView):
     form_class = SignupForm
     success_url = reverse_lazy("account/login")
 
-    def get_context_data(self, ** kwargs):
-        context = super().get_context_data(**kwargs)
-        print(self.request.user)
-        print(type(self.request.user))
-        print(self.request.user == "AnonymousUser")
-        return context
 
-
-
-class DetailUser(LoginRequiredMixin, UpdateView):
+class DetailUser(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = CustomUser
+    template_name = "account/detail-user.html"
+
+    def test_func(self):
+        return self.request.user.id == self.kwargs["pk"]
 
 
-class DoesLoggedInUserOwnThisRowMixin:
-    pass
-
-
-class UpdateUser(LoginRequiredMixin, UpdateView):
+class UpdateUser(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = CustomUser
     template_name = "account/signup.html"
     form_class = SignupForm
     success_url = reverse_lazy("homepage") # TODO : changer en detail user
 
+    def test_func(self):
+        return self.request.user.id == self.kwargs["pk"]
 
 
-class ReservationDetailView(LoginRequiredMixin, DetailView):
+class ReservationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Reservation
     template_name = "detail-reservation.html"
     # context_object_name = ""
+
+    def test_func(self):
+        reservation = Reservation.objects.get(pk=self.kwargs["pk"])
+        return self.request.user.id == reservation.user.id
 
 
 class ListReservations(LoginRequiredMixin, ListView):
@@ -89,7 +88,7 @@ class ListReservations(LoginRequiredMixin, ListView):
         context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
 
-
+@login_required
 def change_password(request):
     if request.method == 'POST':
         form = PasswordChangeForm(request.user, request.POST)

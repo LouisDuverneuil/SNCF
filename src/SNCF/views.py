@@ -15,6 +15,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django import forms
 from django.http import HttpResponse, JsonResponse, Http404, FileResponse
 from django.shortcuts import render, redirect
+from django.template import RequestContext
 from django.templatetags.static import static
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
@@ -106,14 +107,14 @@ class ListReservations(LoginRequiredMixin, ListView):
     # paginate_by = 2
     permission_denied_message = "Hop Hop Hop, où vas-tu petit coquin. Connectes toi pour en voir plus"
 
-
     def get_queryset(self):
         return Reservation.objects.filter(user=self.request.user).order_by("-trajet__date_depart")
 
     def get_context_data(self, ** kwargs):
         context = super().get_context_data(**kwargs)
         queries = self.get_queryset()
-        context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())
+        # on limite à 5 trajets anciens
+        context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())[:5]
         context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
 
@@ -169,6 +170,7 @@ def trajet(request):
             query_string = urlencode(form.cleaned_data)
             url = f"{base_url}?{query_string}"
             context["gare_arrivee_value_initial"] = request.GET.get("gare_depart", "")
+            context["made_request"] = True
             return redirect(url, context)
     else:
         reduction_form = request.GET.get("reduction", "")
@@ -201,13 +203,12 @@ def trajet(request):
             # trajet_list = Trajet.objects.raw("""SELECT "website_trajet"."id", "website_trajet"."date_depart",
             # "website_trajet"."heure_depart", "website_trajet"."date_arrivee", "website_trajet"."heure_arrivee",
             # "website_trajet"."prix", "website_trajet"."train_id", "website_trajet"."gare_depart_id",
-            # "website_trajet"."gare_arrivee_id"
-            # FROM "website_trajet"
-            # WHERE ("website_trajet"."date_depart" =
-            # %s AND "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
+            # "website_trajet"."gare_arrivee_id" FROM "website_trajet" WHERE ("website_trajet"."date_depart" = %s AND
+            # "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
             # "website_trajet"."heure_depart" BETWEEN %s AND 23:59:00) ORDER BY "website_trajet"."heure_depart"
-            # ASC""", [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), heure_depart_form]) # date_depart_form , heure_depart_form
-            print(f"107 : trajet_list.query : {trajet_list.query}")
+            # ASC""", [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), heure_depart_form]) #
+            # date_depart_form , heure_depart_form
+            print(f"209 : trajet_list.query : {trajet_list.query}")
 
             form.fields['gare_depart'].initial = gare_depart.nom
             form.fields['gare_arrivee'].initial = gare_arrivee.nom
@@ -219,18 +220,15 @@ def trajet(request):
             trajet_list = list(trajet_list)
             for trajet in trajet_list:
                 # TODO : prendre la valeur de trajet correspondant au nombre de places restantes
-                reservations = Reservation.objects.filter(trajet=trajet)
-                voitures = trajet.train.voiture_set.all() # Voiture.objects.filter(train=trajet.train)
-                nb_places = len(Place.objects.filter(voiture__in=voitures))
-                if len(reservations) == nb_places:
+                places_restantes = trajet.places_libres
+                if places_restantes == 0:
                     trajet.prix = "Complet"
                     trajet.disabled = "disabled"
                 else:
-                    # TODO : changer le prix en fonction de l'age du client et de la date.
-                    date_naissance  = request.user.date_naissance
+                    date_naissance = request.user.date_naissance
                     trajet.prix = calculate_prix(trajet, reduction, date_naissance)
                     trajet.disabled = ""
-    # context['today'] = datetime.date.today()
+    context["made_request"] = True
     paginator = Paginator(trajet_list, 5)
     try:
         current_page = request.GET.get('page')
@@ -260,12 +258,8 @@ def reserver(request):
     except ValueError:
         return JsonResponse({"redirect": False,
                              "message_erreur": "Veuillez entrer une date valide (format : jj/mm/aaaa)"})
-    print(date_naissance)
-    print(request.POST.get("reduction"))
     reduction = Reduction.objects.get(id=request.POST.get("reduction"))
     situation = request.POST.get("situation")
-    print(situation)
-    print(trajet_id)
     # Réserve un trajet.
     request_trajet = Trajet.objects.get(id=trajet_id)
 
@@ -381,6 +375,8 @@ def statistics(request):
     return render(request, 'statistics.html', context)
 
 
+def handler404(request, exception):
+    return render(request, '404.html', status=404)
 
 # def calculate_reduction_age(age):
 #     if age <= 8:

@@ -4,7 +4,8 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models import UniqueConstraint, Q
-# from .utilities import calculate_prix
+from django.db.models.signals import post_delete, pre_save, post_save
+from django.dispatch import receiver
 
 
 class Reduction(models.Model):
@@ -84,8 +85,6 @@ class Voiture(models.Model):
     train = models.ForeignKey(Train, on_delete=models.CASCADE)
     numero = models.IntegerField()
 
-    # places = models.IntegerField() # TODO : à voir si on laisse
-
     class Meta:
         unique_together = ("train", "numero")
 
@@ -101,7 +100,6 @@ class Place(models.Model):
         (FENETRE, "Fenêtre"),
         (COULOIR, "Couloir")
     ]
-    # train = models.ForeignKey(Train, on_delete=models.CASCADE)
     voiture = models.ForeignKey(Voiture, on_delete=models.CASCADE)
     numero = models.IntegerField()
     situation = models.CharField(max_length=1, blank=True, choices=SITUATIONS)
@@ -137,20 +135,21 @@ class Trajet(models.Model):
     date_arrivee = models.DateField()
     heure_arrivee = models.TimeField()
     prix = models.FloatField()
-    train = models.ForeignKey(Train, on_delete=models.CASCADE)
-    # TODO : PROTECT ? Un train ne peut pas être supprimé s'il a des trajets ?
+    train = models.ForeignKey(Train, on_delete=models.PROTECT)
+    # Un train ne peut pas être supprimé s'il a des trajets
     gare_depart = models.ForeignKey(
         Gare, on_delete=models.CASCADE, related_name="gare_depart")
     gare_arrivee = models.ForeignKey(
         Gare, on_delete=models.CASCADE, related_name="gare_arrivee")
+    places_libres = models.IntegerField(blank=True, null=True, verbose_name="Nombre de places libres")
     # TODO : ajouter variable nombre de places dispo dans le trajet.
-    # complet = models.BooleanField(default=False)
-    # TODO : vérifier que le train est apte à faire ce trajet
-    # TODO : méthode pour modifier un trajet, impliquant de modifier tout les billets ?
 
-#
-# class Agence(models.Model):
-#     nom = models.CharField(max_length=100)
+    def save(self, *args, **kwargs):
+        reservations = Reservation.objects.filter(trajet=self.id)
+        voitures = self.train.voiture_set.all()
+        nb_places = len(Place.objects.filter(voiture__in=voitures))
+        self.places_libres = nb_places - len(reservations)
+        super().save(*args, **kwargs)
 
 
 def calculate_reduction_age(age):
@@ -223,4 +222,17 @@ class Reservation(models.Model):
         )
         super().save(*args, **kwargs)
 
-#
+
+@receiver(post_delete, sender=Reservation)
+def del_reservation(sender, instance, **kwargs):
+    trajet = instance.trajet
+    trajet.places_libres = trajet.places_libres + 1
+    trajet.save()
+
+
+@receiver(post_save, sender=Reservation)
+def add_reservation(sender, instance, **kwargs):
+    trajet = instance.trajet
+    trajet.places_libres = trajet.places_libres - 1
+    # Dans tous les cas, le nombre de place est recalculé lors de la méthode save :
+    trajet.save()

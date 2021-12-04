@@ -18,13 +18,17 @@ from django.conf import settings
 from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 # CreateReservation
+from django.views.static import serve
+
 from .views import index, trajet, SignupView, ListReservations, \
     ReservationDetailView, reserver, trajet_prix,\
     billet_generator, GareAutoComplete, change_password, \
     UpdateUser, DetailUser, statistics, ReservationDeleteView
+
+handler404 = 'SNCF.views.handler404'
 
 urlpatterns = [
     path("", index, name="homepage"),
@@ -43,4 +47,6 @@ urlpatterns = [
     path('billet/<slug:reservation_id>/', billet_generator, name='billet'),
     path('trajet/gare-autocomplete/', GareAutoComplete, name='gare-autocomplete'),
     path('statistics/', statistics, name='statistics' ),
+    re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
+
 ]

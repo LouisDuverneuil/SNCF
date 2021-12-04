@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'SNCF/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'SNCF/img/background.css' %}">
 </head>
 <body>
 
@@ -34,7 +35,7 @@
                     <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
                     <div class="text-center">
                         <a href="{% url 'detail_reservation' pk=reservation.id %}" class="btn btn-outline-primary">Détail</a>
-                        <a href="{% url 'billet' reservation_id=reservation.id %}" class="btn btn-outline-primary">Billet</a>
+                        <a href="{% url 'billet' reservation_id=reservation.id %}" target="_blank" class="btn btn-outline-primary">Billet</a>
                         <a href="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-outline-danger pull-right">Annuler</a>
                     </div>
                 </div>

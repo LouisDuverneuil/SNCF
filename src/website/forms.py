@@ -56,10 +56,6 @@ YEAR_CHOICE = [now.year, now.year + 1]
 class TrajetForm(forms.ModelForm):
     reduction = forms.ModelChoiceField(queryset=Reduction.objects.filter(user_allowed=True).order_by("type"), required=False,
                                        label="Reduction", empty_label=None)
-    # gare_depart = forms.ModelChoiceField(
-    #     queryset=Gare.objects.all(),
-    #     widget=autocomplete.ModelSelect2(url='gare-autocomplete')
-    # )
 
     class Meta:
         model = Trajet
@@ -72,7 +68,6 @@ class TrajetForm(forms.ModelForm):
         widgets = {
             "date_depart": forms.SelectDateWidget(years=YEAR_CHOICE),
             "heure_depart": TimePickerInput(),
-            # "gare_depart": autocomplete.ModelSelect2(url='gare-autocomplete'),
         }
 
 
@@ -87,7 +82,8 @@ class ReservationForm(forms.Form):
 
     if_user = forms.BooleanField(initial=False, required=False, label="Je ne suis pas le voyageur")
     reduction = forms.ModelChoiceField(queryset=Reduction.objects.filter(user_allowed=True), required=False,
-                                       widget=forms.Select(attrs={'id': 'id_reduction_form'}), empty_label=None)
+                                       widget=forms.Select(attrs={'id': 'id_reduction_form'}), empty_label=None,
+                                       help_text="Attention, votre carte de réduction sera contrôlée à bord du train")
     nom = forms.CharField(max_length=100, disabled=True)
     prenom = forms.CharField(max_length=100, disabled=True)
     date_naissance = forms.DateField(disabled=True)
@@ -98,7 +94,3 @@ class ReservationForm(forms.Form):
         self.fields['nom'].initial = user.nom
         self.fields['prenom'].initial = user.prenom
         self.fields['date_naissance'].initial = user.date_naissance
-        # self.fields['reduction'].initial = user.reduction
-        # self.fields['nom'].widget.attrs['style'] = 'display:none'
-        # self.fields['user'].widget.attrs['id'] = 'user_choice'
-        # self.fields['if_user'].widget.attrs['onclick'] = "javascript:toggleDiv('if_user');"

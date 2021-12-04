@@ -105,10 +105,10 @@
                                 <input type="time" name="heure_depart" value="{{ form.heure_depart.value }}"
                                        class="form-control timepickerinput form-control" required id="id_heure_depart"
                                        dp_config="{&quot;id&quot;: &quot;dp_1&quot;, &quot;picker_type&quot;: &quot;TIME&quot;, &quot;linked_to&quot;: null, &quot;options&quot;: {&quot;showClose&quot;: true, &quot;showClear&quot;: true, &quot;showTodayButton&quot;: true, &quot;format&quot;: &quot;HH:mm&quot;}}"/>
-                                <div class="input-group-addon input-group-append" data-target="#datetimepicker1"
-                                     data-toggle="datetimepickerv">
-                                    <div class="input-group-text"><i class="glyphicon glyphicon-time"></i></div>
-                                </div>
+<!--                                <div class="input-group-addon input-group-append" data-target="#datetimepicker1"-->
+<!--                                     data-toggle="datetimepickerv">-->
+<!--                                    <div class="input-group-text"><i class="glyphicon glyphicon-time"></i></div>-->
+<!--                                </div>-->
                             </div>
                         </div>
                     </div>
@@ -118,83 +118,108 @@
                 {{ form.reduction|as_crispy_field }}
             </div>
 
-            <input type="submit" class="btn btn-primary btn-block" value="Rechercher" name="recherche"/>
+            <input type="submit" class="btn btn-info btn-block" value="Rechercher" name="recherche"/>
         </form>
         <br>
         <br>
         <!--        filter.qs-->
-        {% for trajet in trajet_list %}
-        <div class="card text-center text-dark mb-3">
-            <div class="card-header">
-                {{ trajet.date_depart }}
-                {{ trajet.heure_depart }}
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">{{ trajet.gare_depart }} - {{ trajet.gare_arrivee }}</h5>
-                <h6 class="card-text">
-                    Départ : {{ trajet.heure_depart }} -
-                    Arrivée : {{ trajet.heure_arrivee }} <br>
-                    {% if trajet.prix != "Complet" %}Prix : {{ trajet.prix }} €{% else %} {{ trajet.prix }} {% endif %}
-                </h6>
-                <div class="modal fade" tabindex="-1" role="dialog" id="modal">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content"></div>
-                    </div>
+        {% if trajet_list and request.get_full_path != request.path %}
+            {% for trajet in trajet_list %}
+            <div class="card text-dark mb-3">
+                <div class="card-footer text-center">
+                    {{ trajet.date_depart }}
                 </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-2 text-center">
+                                    <h3>{{ trajet.heure_depart }}</h3>
+                                </div>
+                                <div class="col-md-1"></div>
+                                <div class="col-md-7">
+                                    <h4>{{ trajet.gare_depart }}</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2 text-center">
+                                    <h3>{{ trajet.heure_arrivee }}</h3>
+                                </div>
+                                <div class="col-md-1"></div>
+                                <div class="col-md-7">
+                                    <h4>{{ trajet.gare_arrivee }}</h4>
+                                </div>
+                                <div class="col-md-2 text-right">
+                                    TGV inOUI
+                                </div>
+                            </div>
 
-                <!-- Create book button -->
-                <button id="create-reservation-{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}"
-                        aria-disabled="true"
-                        type="button" name="button" data-toggle="modal" data-target="#exampleModalCenter"
-                        data-whatever="{{trajet.id}}|{{trajet.gare_depart}}|{{trajet.gare_arrivee}}|{{trajet.prix}}|{{trajet.heure_depart}}|{{trajet.heure_arrivee}}|{{trajet.date_depart}}">
-                    Réserver Trajet
-                </button>
-                <!--"{{trajet.gare_depart}} - {{trajet.gare_arrivee}}  {{trajet.heure_depart}} - {{trajet.heure_arrivee}}"-->
-                <!--                        <a href="reservation/{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}" aria-disabled="true">Réserver</a>-->
+                        </div>
+                        <div class="col-md-2">
+                            <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content"></div>
+                                </div>
+                            </div>
+
+                            <!-- Create book button -->
+                            <button id="create-reservation-{{trajet.id}}" class="btn btn-info btn-block reserver_boutton {{trajet.disabled}}"
+                                    aria-disabled="true"
+                                    style="width: 130px; height: 90px; align-content: center; font-size : 25px;"
+                                    type="button" name="button" data-toggle="modal" data-target="#exampleModalCenter"
+                                    data-whatever="{{trajet.id}}|{{trajet.gare_depart}}|{{trajet.gare_arrivee}}|{{trajet.prix}}|{{trajet.heure_depart}}|{{trajet.heure_arrivee}}|{{trajet.date_depart}}">
+                                {% if trajet.prix != "Complet" %}{{ trajet.prix }} €{% else %} {{ trajet.prix }} {% endif %}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!--"{{trajet.gare_depart}} - {{trajet.gare_arrivee}}  {{trajet.heure_depart}} - {{trajet.heure_arrivee}}"-->
+                    <!--                        <a href="reservation/{{trajet.id}}" class="btn btn-primary {{trajet.disabled}}" aria-disabled="true">Réserver</a>-->
+                </div>
             </div>
-        </div>
-        {% endfor %}
-        {% if not trajet_list %}
+            {% endfor %}
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Précédente</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Précédente</span>
+                    </li>
+                    {% endif %}
+
+                    {% for N in page_obj.paginator.page_range %}
+                    {% if N == page_obj.number %}
+                    <li class="page-item disabled">
+                        <span class="page-link">{{N}}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="?{% param_replace page=N %}">{{N}}</a></li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% param_replace page=page_obj.next_page_number %}">Suivante</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Suivante</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+        {% if not trajet_list and request.get_full_path != request.path %}
             <h4 style="text-align:center">
                 Aucun trajet ne correspond à ta recherche, retente ta chance !
             </h4>
-        <br>
         {% endif %}
         {% endblock %}
 
-        <nav aria-label="...">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Précédente</a>
-                </li>
-                {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Précédente</span>
-                </li>
-                {% endif %}
 
-                {% for N in page_obj.paginator.page_range %}
-                {% if N == page_obj.number %}
-                <li class="page-item disabled">
-                    <span class="page-link">{{N}}</span>
-                </li>
-                {% else %}
-                <li class="page-item"><a class="page-link" href="?{% param_replace page=N %}">{{N}}</a></li>
-                {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% param_replace page=page_obj.next_page_number %}">Suivante</a>
-                </li>
-                {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Suivante</span>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
     </form>
 
     {% if second_form %}

@@ -9,3 +9,9 @@ nav .navbar-nav li a{
 .datepicker {
     margin-top: 80px;
 }
+
+.reserver_boutton.style{
+    width: 130px;
+    height: 90px;
+    align-content: center;
+}

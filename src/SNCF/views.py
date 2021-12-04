@@ -4,9 +4,8 @@ import os
 import random
 from abc import ABC
 
-from PyPDF2 import PdfFileReader, PdfFileWriter
-from bootstrap_modal_forms.generic import BSModalCreateView
-from dal import autocomplete
+import pandas as pd
+import plotly
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -14,17 +13,19 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage
 from django import forms
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, FileResponse
+from django.http import HttpResponse, JsonResponse, Http404, FileResponse
 from django.shortcuts import render, redirect
 from django.templatetags.static import static
 from django.urls import reverse_lazy, reverse
+from django.utils import timezone
 from django.utils.http import urlencode
-from django.views.generic import CreateView, ListView, DetailView, UpdateView
-from django.core.exceptions import PermissionDenied
+from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
 from reportlab.pdfgen import canvas
+import plotly.express as px
 
-from website.forms import SignupForm, TrajetForm, ReservationForm
-from website.models import CustomUser, Trajet, Gare, Reservation, Place, Voiture, Reduction
+
+from website.forms import SignupForm, TrajetForm, ReservationForm, UpdateUserForm
+from website.models import CustomUser, Trajet, Gare, Reservation, Place, Voiture, Reduction, calculate_prix
 
 
 def index(request):
@@ -42,6 +43,13 @@ class SignupView(CreateView):
     form_class = SignupForm
     success_url = reverse_lazy("account/login")
 
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Add in a QuerySet of all the books
+        context['update'] = False
+        return context
+
 
 class DetailUser(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = CustomUser
@@ -54,17 +62,38 @@ class DetailUser(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 class UpdateUser(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = CustomUser
     template_name = "account/signup.html"
-    form_class = SignupForm
-    success_url = reverse_lazy("homepage") # TODO : changer en detail user
+    form_class = UpdateUserForm
+    # success_url = reverse_lazy("detail-profile", kwargs={'pk': request.user.id})
+
+    def get_success_url(self):
+        return reverse_lazy("detail-profile", kwargs={'pk': self.request.user.id})
 
     def test_func(self):
         return self.request.user.id == self.kwargs["pk"]
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Add in a QuerySet of all the books
+        context['update'] = True
+        return context
 
 
 class ReservationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Reservation
     template_name = "detail-reservation.html"
     # context_object_name = ""
+
+    def test_func(self):
+        reservation = Reservation.objects.get(pk=self.kwargs["pk"])
+        return self.request.user.id == reservation.user.id
+
+
+class ReservationDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Reservation
+    template_name = "delete-reservation.html"
+    success_url = reverse_lazy("reservations")
+    # context_object_name = "reservation"
 
     def test_func(self):
         reservation = Reservation.objects.get(pk=self.kwargs["pk"])
@@ -87,6 +116,7 @@ class ListReservations(LoginRequiredMixin, ListView):
         context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())
         context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
         return context
+
 
 @login_required
 def change_password(request):
@@ -124,7 +154,11 @@ class CreateReservation(LoginRequiredMixin, CreateView):
 
 @login_required
 def trajet(request):
-    context = {}
+    user_profile = CustomUser.objects.get(id=request.user.id)
+    context = {'user_profile_nom':user_profile.nom,
+               'user_profile_prenom':user_profile.prenom,
+               'user_profile_date_naissance':user_profile.date_naissance.strftime('%d/%m/%Y')
+    }
     trajet_list = []
     if request.method == "POST" and 'recherche' in request.POST:
         form = TrajetForm(request.POST)
@@ -192,9 +226,9 @@ def trajet(request):
                     trajet.prix = "Complet"
                     trajet.disabled = "disabled"
                 else:
-                    # TODO : changer le prix en fonction du client.
-                    trajet.prix = round(
-                        trajet.prix * (1-reduction.pourcentage/100), 2)  # * (1-request)
+                    # TODO : changer le prix en fonction de l'age du client et de la date.
+                    date_naissance  = request.user.date_naissance
+                    trajet.prix = calculate_prix(trajet, reduction, date_naissance)
                     trajet.disabled = ""
     # context['today'] = datetime.date.today()
     paginator = Paginator(trajet_list, 5)
@@ -208,15 +242,25 @@ def trajet(request):
         trajet_list = paginator.page(paginator.num_pages)
         context['page_obj'] = paginator.get_page(paginator.num_pages)
     context['trajet_list'] = trajet_list
+
     context['today'] = datetime.date.today().strftime('%d/%m/%Y')
     return render(request, "trajet_form.html", context)
 
 
 def reserver(request):
-    print("Essaye de réserver")
     trajet_id = int(request.POST.get("trajet_id"))
     nom = request.POST.get("nom")
     prenom = request.POST.get("prenom")
+    if not prenom or not nom:
+        return JsonResponse({"redirect": False,
+                             "message_erreur": "Veuillez entrer un nom et prénom valides"})
+    date_naissance_form = request.POST.get("date_naissance")
+    try:
+        date_naissance = datetime.datetime.strptime(date_naissance_form, '%d/%m/%Y')
+    except ValueError:
+        return JsonResponse({"redirect": False,
+                             "message_erreur": "Veuillez entrer une date valide (format : jj/mm/aaaa)"})
+    print(date_naissance)
     print(request.POST.get("reduction"))
     reduction = Reduction.objects.get(id=request.POST.get("reduction"))
     situation = request.POST.get("situation")
@@ -246,17 +290,21 @@ def reserver(request):
     # choix de la place en fonction de la demande de situation:
     place = random.choice(places_dispo)
     print(place)
-
+    # try:
     new_reservation = Reservation(
         user=request.user,
         trajet=request_trajet,
         nom=nom,
         prenom=prenom,
+        date_naissance=date_naissance,
         place=place,
         reduction=reduction,
-        date=datetime.date.today(),
+        date=timezone.now(),
     )
     new_reservation.save()
+    # except:
+    #     return JsonResponse({"redirect": False,
+    #                          "message_erreur": "Votre réservation n'a pas pu être effectuée, veuillez vérifier les champs du formulaire"})
     print(new_reservation)
     print(new_reservation.trajet)
     return JsonResponse({"redirect": True, "new_reservation":new_reservation.id})
@@ -265,8 +313,11 @@ def reserver(request):
 def trajet_prix(request):
     trajet_id = int(request.POST.get("trajet_id"))
     reduction = Reduction.objects.get(id=request.POST.get("reduction"))
+    print(f"request.POST.get('date_naissance') : {request.POST.get('date_naissance')}")
+    date_naissance = request.POST.get("date_naissance")
+    print(type(date_naissance))
     trajet = Trajet.objects.get(pk=trajet_id)
-    prix = trajet.prix * (1 - reduction.pourcentage/100)
+    prix = calculate_prix(trajet=trajet, reduction=reduction, born=date_naissance)
     return JsonResponse({"prix": prix})
 
 
@@ -280,17 +331,18 @@ def billet_generator(request, reservation_id):
     # créer le pdf du billet :
     # Create a file-like buffer to receive PDF data.
 
-    buffer = open('SNCF/'+static('SNCF/img/e-billet.pdf'), 'r+')
+    # buffer = open('SNCF/'+static('SNCF/img/e-billet.pdf'), 'r+')
+    buffer = io.BytesIO()
     # Create the PDF object, using the buffer as its "file."
     p = canvas.Canvas(buffer)
     # Draw things on the PDF. Here's where the PDF generation happens.
     # See the ReportLab documentation for the full list of functionality.
     # TODO : changer le pdf et mettre toutes les infos
-    p.drawString(10, 10, "C'est mon pdffffffff.")
+    p.drawString(100, 100, "C'est mon pdffffffff.")
 
     # Close the PDF object cleanly, and we're done.
     p.showPage()
-    # p.save()
+    p.save()
 
     # FileResponse sets the Content-Disposition header so that browsers
     # present the option to save the file.
@@ -306,12 +358,65 @@ def GareAutoComplete(request):
     return JsonResponse(context)
 
 
-class GareAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            print('not authentificated')
-            return Gare.objects.none()
-        qs = Gare.objects.all()
-        if self.q:
-            qs = qs.filter(nom__icontains=self.q)
-        return qs
+@login_required
+def statistics(request):
+    context = {}
+
+    my_resa = Reservation.objects.filter(user=request.user)
+    if not my_resa:
+        return render(request, 'statistics.html', context)
+    prices = list(map(lambda x: x.prix, my_resa))
+    dates = list(map(lambda x: x.trajet.date_depart, my_resa))
+    df_prix = pd.DataFrame({'prix': prices, 'date':dates})
+    print(df_prix)
+    fig_prix = px.line(df_prix, x='date', y='prix')
+    fig_prix.update_layout(
+        title="Prix des réservations de billet de train au cours du temps",
+        xaxis_title='Date de départ du train',
+        yaxis_title='Prix du billet (en €)')
+
+    plt_div_prix = plotly.offline.plot(fig_prix, output_type='div')
+
+    context["graph_prix"] = plt_div_prix
+    return render(request, 'statistics.html', context)
+
+
+
+# def calculate_reduction_age(age):
+#     if age <= 8:
+#         my_type = "-8ans"
+#     if 8 < age < 19:
+#         my_type = "-18ans"
+#     if age >= 65:
+#         my_type = "Senior"
+#     else:
+#         my_type = "Aucune"
+#     print(my_type)
+#     my_reduction_age = Reduction.objects.get(type=my_type)
+#     return my_reduction_age
+#
+#
+# def calculate_reduction_date(wait_time):
+#     if wait_time >= 30:
+#         my_type = "J-30"
+#     if 30 > wait_time > 8:
+#         my_type = "J-8"
+#     else:
+#         my_type = "Aucune"
+#     my_reduction_date = Reduction.objects.get(type=my_type)
+#     return my_reduction_date
+#
+#
+# def calculate_prix(trajet, reduction, born):
+#     today = datetime.date.today()
+#     if type(born) == str:
+#         born = datetime.datetime.strptime(born, '%d/%m/%Y')
+#         print(born)
+#     age_voyageur = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+#     reduction_age = calculate_reduction_age(age_voyageur)
+#     waiting_time = (today - trajet.date_depart).days
+#     reduction_date = calculate_reduction_date(waiting_time)
+#     # Application de la réduction liée à une carte de réduction
+#     cumulated_pourcentage = min(reduction.pourcentage + reduction_date.pourcentage + reduction_age.pourcentage, 100)
+#     prix = round(trajet.prix * (1 - cumulated_pourcentage / 100), 2)
+#     return prix

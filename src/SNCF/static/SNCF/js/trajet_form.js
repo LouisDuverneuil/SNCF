@@ -14,7 +14,6 @@ $(document).ready(function(){
         })
     });
 
-
 var trajet, trajet_id,
 trajet_gare_depart, trajet_gare_arrivee, trajet_prix,
 trajet_heure_depart, trajet_heure_arrivee, trajet_gare_arrivee;
@@ -40,23 +39,5 @@ $('#exampleModalCenter').on('show.bs.modal', function (event) {
     // var reduc = document.getElementById("id_reduction");
 });
 
-
-document.querySelector("#id_if_user").addEventListener('change', event => {
-    console.log(document.querySelector("#id_if_user").checked);
-    var bool = document.querySelector("#id_if_user").checked;
-    if (bool) {
-    console.log("Checkbox is checked..");
-    var nom = document.getElementById("id_nom");
-    nom.removeAttribute("disabled");
-    var prenom = document.getElementById("id_prenom");
-    prenom.removeAttribute("disabled");
-  } else {
-    console.log("Checkbox is not checked..");
-    var nom = document.getElementById("id_nom");
-    nom.setAttribute("disabled", true);
-    var prenom = document.getElementById("id_prenom");
-    prenom.setAttribute("disabled", true);
-  }
-});
 
 

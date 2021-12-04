@@ -1,34 +1,44 @@
+import datetime
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models import UniqueConstraint, Q
+# from .utilities import calculate_prix
 
 
 class Reduction(models.Model):
     type = models.CharField(max_length=45, unique=True)
     pourcentage = models.FloatField(default=0)
+    user_allowed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.type
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, password=None, nom=None, prenom=None):
+    def create_user(self, email, password=None, nom=None, prenom=None, date_naissance=None):
         if not email:
             raise ValueError("Vous devez rentrer un email")
 
         user = self.model(
             email=self.normalize_email(email),
             nom=nom,
-            prenom=prenom
+            prenom=prenom,
+            date_naissance = date_naissance,
         )
         user.set_password(password)
         user.save()
         return user
 
-    def create_super_user(self, email, password=None, nom=None, prenom=None):
+    def create_super_user(self, email, password=None, nom=None, prenom=None, date_naissance=None):
         user = self.create_user(
-            email=email, password=password, nom=nom, prenom=prenom)
+            email=email,
+            password=password,
+            nom=nom,
+            prenom=prenom,
+            date_naissance=date_naissance,
+        )
         user.is_admin = True
         user.is_staff = True
         user.save()
@@ -47,12 +57,12 @@ class CustomUser(AbstractBaseUser):
 
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
-    reduction = models.ForeignKey(
-        Reduction, blank=True, null=True, on_delete=models.SET_NULL)
+    date_naissance = models.DateField()
+    reduction = models.ForeignKey(Reduction, blank=True, null=True, on_delete=models.SET_NULL)
 
     USERNAME_FIELD = "email"
     objects = MyUserManager()
-    REQUIRED_FIELDS = ["nom", "prenom"]
+    REQUIRED_FIELDS = ["nom", "prenom", "date_naissance"]
 
     def has_perm(self, perm, obj=None):
         return True
@@ -138,35 +148,63 @@ class Trajet(models.Model):
     # TODO : vérifier que le train est apte à faire ce trajet
     # TODO : méthode pour modifier un trajet, impliquant de modifier tout les billets ?
 
-
-class Client(models.Model):
-    nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
-    reduction = models.ForeignKey(
-        Reduction, blank=True, null=True, on_delete=models.SET_NULL)
-    mail = models.EmailField()
-
-    def __str__(self):
-        return f"{self.nom} {self.prenom}"
+#
+# class Agence(models.Model):
+#     nom = models.CharField(max_length=100)
 
 
-class Agence(models.Model):
-    nom = models.CharField(max_length=100)
+def calculate_reduction_age(age):
+    print(f"Age : {age}, type : {type(age)}")
+    if age <= 8:
+        my_type = "-8ans"
+    elif 8 < age < 19:
+        my_type = "-18ans"
+    elif age >= 65:
+        my_type = "Senior"
+    else:
+        my_type = "Aucune"
+    print(my_type)
+    my_reduction_age = Reduction.objects.get(type=my_type)
+    return my_reduction_age
+
+
+def calculate_reduction_date(wait_time):
+    if wait_time >= 30:
+        my_type = "J-30"
+    elif 30 > wait_time > 8:
+        my_type = "J-8"
+    else:
+        my_type = "Aucune"
+    my_reduction_date = Reduction.objects.get(type=my_type)
+    return my_reduction_date
+
+
+def calculate_prix(trajet, reduction, born):
+    today = datetime.date.today()
+    if type(born) == str:
+        born = datetime.datetime.strptime(born, '%d/%m/%Y')
+    age_voyageur = int(today.year - born.year - ((today.month, today.day) < (born.month, born.day)))
+    reduction_age = calculate_reduction_age(age_voyageur)
+    waiting_time = (today - trajet.date_depart).days
+    reduction_date = calculate_reduction_date(waiting_time)
+    # Application de la réduction liée à une carte de réduction
+    cumulated_pourcentage = min(reduction.pourcentage + reduction_date.pourcentage + reduction_age.pourcentage, 100)
+    prix = round(trajet.prix * (1 - cumulated_pourcentage / 100), 2)
+    return prix
 
 
 class Reservation(models.Model):
-    # TODO : changer le client en user
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     # confirmation = models.BooleanField()
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE)
     prix = models.FloatField(blank=True, null=True)
-    agence = models.ForeignKey(
-        Agence, blank=True, null=True, on_delete=models.SET_NULL)
+    # agence = models.ForeignKey(Agence, blank=True, null=True, on_delete=models.SET_NULL)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     reduction = models.ForeignKey(
         Reduction, null=True, on_delete=models.SET_NULL)
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
+    date_naissance = models.DateField()
     date = models.DateTimeField()
 
     class Meta:
@@ -178,18 +216,11 @@ class Reservation(models.Model):
 
     def save(self, *args, **kwargs):
         print(self.reduction.pourcentage)
-        if self.reduction.pourcentage:
-            self.prix = self.trajet.prix * (1 - self.reduction.pourcentage/100)
-        else:
-            self.prix = self.trajet.prix
+        self.prix = calculate_prix(
+            trajet=self.trajet,
+            reduction=self.reduction,
+            born=self.date_naissance,
+        )
         super().save(*args, **kwargs)
 
 #
-# class Billet(models.Model):
-#     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE)
-#     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE)
-#     voiture = models.ForeignKey(Voiture, on_delete=models.CASCADE)
-#     place = models.ForeignKey(Place, on_delete=models.CASCADE)
-#
-#
-#     # TODO : méthode vérifiant que la réservation est confirmée avant de créer le billet. Retourne une erreur sinon

@@ -16,8 +16,11 @@
 <body>
 {% include 'navbar.html' %}
 <div class="container mg-t">
-
+    {% if not update %}
     <h1>Création d'un compte utilisateur.</h1>
+    {% else %}
+    <h1>Modification de votre compte utilisateur.</h1>
+    {% endif %}
 <!--    méthode post au lieu de get pour éviter d'envoyer le formulaire dans l'url, ce qui ne serait pas sécuritaire-->
     <form method="POST" class="form-group">
         {% csrf_token %}
@@ -32,15 +35,22 @@
                 {{ form.prenom|as_crispy_field }}
             </div>
         </div>
+        {% if not update %}
+        <div class="row">
+            {{ form.date_naissance|as_crispy_field }}
+        </div>
+        {% endif %}
         <div class="row">
             {{ form.reduction|as_crispy_field }}
         </div>
+        {% if not update %}
         <div class="row">
             {{ form.password1|as_crispy_field }}
         </div>
         <div class="row">
             {{ form.password2|as_crispy_field }}
         </div>
+        {% endif %}
 <!--        <table>-->
 <!--            {{ form|crispy }}-->
 <!--        </table>-->
@@ -51,7 +61,11 @@
             </h2>
         {% endfor %}
 
+        {% if not update %}
         <input type="submit" class="btn btn-primary" value="S'inscrire"/>
+        {% else %}
+        <input type="submit" class="btn btn-danger" value="Enregistrer"/>
+        {% endif %}
     </form>
 </div>
 </body>

@@ -10,15 +10,39 @@ from .models import CustomUser, Trajet, Reduction, Gare
 
 
 class SignupForm(UserCreationForm):
+    reduction = forms.ModelChoiceField(queryset=Reduction.objects.filter(user_allowed=True).order_by("type"), required=False,
+                                       label="Reduction", empty_label=None, initial="Aucune")
+
     class Meta:
         model = CustomUser
-        fields = ("email", "nom", "prenom", "reduction")
+        fields = ("email", "nom", "prenom", "date_naissance", "reduction")
         # help_texts = {'reduction': "Carte avantage SNCF ?"}
         widgets = {
             "email": forms.TextInput({"placeholder": "zinedine@zidane.fr"}),
             "nom": forms.TextInput({"placeholder": "Zidane"}),
             "prenom": forms.TextInput({"placeholder": "Zinedine"}),
+            "date_naissance": forms.SelectDateWidget()
         }
+        labels = {
+            'reduction': "Carte avantage SNCF",
+            'prenom': 'Prénom',
+            'date_naissance': "Date de naissance"
+        }
+        # query_settings = {
+        #     "reduction": Reduction.objects.filter(user_allowed=True),
+        # }
+
+
+class UpdateUserForm(forms.ModelForm):
+    reduction = forms.ModelChoiceField(queryset=Reduction.objects.filter(user_allowed=True).order_by("type"),
+                                       required=False,
+                                       label="Reduction", empty_label=None, initial="Aucune")
+
+    class Meta:
+        model = CustomUser
+        fields = ("email", "nom", "prenom", "reduction")
+        # help_texts = {'reduction': "Carte avantage SNCF ?"}
+
         labels = {
             'reduction': "Carte avantage SNCF",
             'prenom': 'Prénom'
@@ -30,7 +54,7 @@ YEAR_CHOICE = [now.year, now.year + 1]
 
 
 class TrajetForm(forms.ModelForm):
-    reduction = forms.ModelChoiceField(queryset=Reduction.objects.all().order_by("type"), required=False,
+    reduction = forms.ModelChoiceField(queryset=Reduction.objects.filter(user_allowed=True).order_by("type"), required=False,
                                        label="Reduction", empty_label=None)
     # gare_depart = forms.ModelChoiceField(
     #     queryset=Gare.objects.all(),
@@ -62,16 +86,18 @@ class ReservationForm(forms.Form):
     ]
 
     if_user = forms.BooleanField(initial=False, required=False, label="Je ne suis pas le voyageur")
-    reduction = forms.ModelChoiceField(queryset=Reduction.objects.all(), required=False,
+    reduction = forms.ModelChoiceField(queryset=Reduction.objects.filter(user_allowed=True), required=False,
                                        widget=forms.Select(attrs={'id': 'id_reduction_form'}), empty_label=None)
     nom = forms.CharField(max_length=100, disabled=True)
     prenom = forms.CharField(max_length=100, disabled=True)
+    date_naissance = forms.DateField(disabled=True)
     situation = forms.ChoiceField(required=False, choices=SITUATIONS)
 
     def __init__(self, user, *args, **kwargs):
         super(ReservationForm, self).__init__(*args, **kwargs)
         self.fields['nom'].initial = user.nom
         self.fields['prenom'].initial = user.prenom
+        self.fields['date_naissance'].initial = user.date_naissance
         # self.fields['reduction'].initial = user.reduction
         # self.fields['nom'].widget.attrs['style'] = 'display:none'
         # self.fields['user'].widget.attrs['id'] = 'user_choice'

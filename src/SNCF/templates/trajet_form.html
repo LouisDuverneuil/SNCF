@@ -27,6 +27,7 @@
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{% static 'SNCF/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'SNCF/img/background.css' %}">
 <!--    <script src="https://unpkg.com/htmx.org@1.6.1"-->
 <!--            integrity="sha384-tvG/2mnCFmGQzYC1Oh3qxQ7CkQ9kMzYjWZSNtrRZygHPDDqottzEJsqS4oUVodhW"-->
 <!--            crossorigin="anonymous"></script>-->
@@ -153,6 +154,12 @@
             </div>
         </div>
         {% endfor %}
+        {% if not trajet_list %}
+            <h4 style="text-align:center">
+                Aucun trajet ne correspond à ta recherche, retente ta chance !
+            </h4>
+        <br>
+        {% endif %}
         {% endblock %}
 
         <nav aria-label="...">
@@ -226,8 +233,18 @@
                                 {{ second_form.prenom|as_crispy_field }}
                             </div>
                             <div class="row">
+                                {{ second_form.date_naissance|as_crispy_field }}
+                            </div>
+                            <div class="row">
                                 {{ second_form.situation|as_crispy_field }}
                             </div>
+                        </div>
+                        {% for message in errors.values %}
+                            <h3 style="color: red;">
+                            {{ message }}
+                            </h3>
+                        {% endfor %}
+                        <div id="id-message-erreur">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
@@ -269,6 +286,7 @@
         let prix_form = new FormData();
         prix_form.append("trajet_id", trajet_id);
         prix_form.append("reduction", document.getElementById("id_reduction_form").value);
+        prix_form.append("date_naissance", document.getElementById("id_date_naissance").value);
 
         let csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
         let request = new Request("{% url 'trajet_prix' %}", {method : "POST",
@@ -286,6 +304,29 @@
 
     });
 
+    document.querySelector("#id_date_naissance").addEventListener('input', event => {
+        console.log("change in reduction_form");
+        event.preventDefault();
+        let prix_form = new FormData();
+        prix_form.append("trajet_id", trajet_id);
+        prix_form.append("reduction", document.getElementById("id_reduction_form").value);
+        prix_form.append("date_naissance", document.getElementById("id_date_naissance").value);
+
+        let csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let request = new Request("{% url 'trajet_prix' %}", {method : "POST",
+                                                           body:prix_form,
+                                                           headers : {"X-CSRFToken": csrfTokenValue}
+                                                           });
+        var new_reservation_id, redirection, redirect_url;
+        fetch(request)
+            .then(response => response.json())
+            .then(result => {
+                var modal = $(this);
+                var modal_prix = document.getElementById("exampleModalLongTitle3");
+                modal_prix.innerText = "Prix : " + result['prix'] + "€";
+            })
+
+    });
 
 </script>
 
@@ -301,6 +342,7 @@
         form.append("reduction", document.getElementById("id_reduction_form").value);
         form.append("nom", document.getElementById("id_nom").value);
         form.append("prenom", document.getElementById("id_prenom").value);
+        form.append("date_naissance", document.getElementById("id_date_naissance").value);
         form.append("situation", document.getElementById("id_situation").value);
 
         let csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -313,9 +355,14 @@
             .then(response => response.json())
             .then(result => {
                 redirection = result['redirect'];
-                let new_reservation_id = result['new_reservation'];
-                console.log("Id nouvelle resa : " + typeof new_reservation_id);
-                window.location.replace("{% url 'reservations' %}"+ new_reservation_id );
+                if (redirection === true) {
+                    let new_reservation_id = result['new_reservation'];
+                    console.log("Id nouvelle resa : " + typeof new_reservation_id);
+                    window.location.replace("{% url 'reservations' %}"+ new_reservation_id + "/detail/" );
+                } else {
+                    console.log("No redirection")
+                    document.getElementById('id-message-erreur').innerHTML = "<h4 style='color: red;'>"+result['message_erreur']+"</h4>";
+                }
             })
     });
 
@@ -351,13 +398,13 @@
                     opt.innerHTML = key;
                     select.appendChild(opt);
                 }
-                if (result.len == 0) {
-                    var opt = document.createElement('option');
-                    opt.value = "";
-                    opt.disabled = true;
-                    opt.innerHTML = "Pas de résultat";
-                    select.appendChild(opt);
-                }
+<!--                if (result.len == 0) {-->
+<!--                    var opt = document.createElement('option');-->
+<!--                    opt.value = "";-->
+<!--                    opt.disabled = true;-->
+<!--                    opt.innerHTML = "Pas de résultat";-->
+<!--                    select.appendChild(opt);-->
+<!--                }-->
             })
     });
 </script>
@@ -400,6 +447,34 @@
 <!--                    select.appendChild(opt);-->
 <!--                }-->
             })
+    });
+</script>
+
+<script type="text/javascript">
+    document.querySelector("#id_if_user").addEventListener('change', event => {
+        console.log(document.querySelector("#id_if_user").checked);
+        var bool = document.querySelector("#id_if_user").checked;
+        if (bool) {
+        console.log("Checkbox is checked..");
+        var nom = document.getElementById("id_nom");
+        nom.removeAttribute("disabled");
+        var prenom = document.getElementById("id_prenom");
+        prenom.removeAttribute("disabled");
+        var date_naissance = document.getElementById("id_date_naissance");
+        date_naissance.removeAttribute("disabled");
+      } else {
+        console.log("Checkbox is not checked..");
+        var nom = document.getElementById("id_nom");
+        nom.setAttribute("disabled", true);
+        nom.value = "{{user_profile_nom}}";
+        var prenom = document.getElementById("id_prenom");
+        console.log("{{ user_profile_prenom }}")
+        prenom.value = "{{ user_profile_prenom }}";
+        prenom.setAttribute("disabled", true);
+        var date_naissance = document.getElementById("id_date_naissance");
+        date_naissance.value = "{{user_profile_date_naissance}}";
+        date_naissance.setAttribute("disabled", true);
+      }
     });
 </script>
 

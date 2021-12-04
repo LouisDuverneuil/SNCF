@@ -32,8 +32,11 @@
                     <h5 class="card-title">{{ reservation.trajet.date_depart }}</h5>
                     <b class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</b>
                     <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
-                    <a href="{% url 'detail_reservation' pk=reservation.id %}" class="btn btn-primary">Détail</a>
-                    <a href="{% url 'billet' reservation_id=reservation.id %}" class="btn btn-primary">Billet</a>
+                    <div class="text-center">
+                        <a href="{% url 'detail_reservation' pk=reservation.id %}" class="btn btn-outline-primary">Détail</a>
+                        <a href="{% url 'billet' reservation_id=reservation.id %}" class="btn btn-outline-primary">Billet</a>
+                        <a href="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-outline-danger pull-right">Annuler</a>
+                    </div>
                 </div>
             </div>
             {% endfor %}

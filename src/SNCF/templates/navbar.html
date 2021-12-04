@@ -10,8 +10,8 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarText">
+        {% if user and not user.is_anonymous %}
         <ul class="navbar-nav mr-auto">
-            {% if user and not user.is_anonymous %}
             <li class="nav-item">
                 <a class="nav-link" {% if nav_bar == 'home' %}active{% endif %} aria-current="page" href="/">Home</a> {#eventually add active #}
             </li>
@@ -21,25 +21,27 @@
             <li class="nav-item">
                 <a class="nav-link" {% if context.nav_bar == 'reservations' %}active{% endif %} href="{% url 'reservations' %}">Mes Réservations</a>
             </li>
-            {% else %}
-            <li>
-                <button class="btn btn-outline-secondary my-2 my-sm-0" onclick="location.href='/account/login/';">Se connecter</button>
-            </li>
-            <li>
-                <button class="btn btn-outline-secondary my-2 my-sm-0" onclick="location.href='/account/signup/';">S'inscrire</button>
-            </li>
-            {% endif %}
         </ul>
-        {% if user and not user.is_anonymous %}
         <ul class="navbar-nav navbar-right">
             <li><a class="nav-link" href="{% url 'detail-profile' pk=user.id %}">Mon Compte</a></li>
             {% if user.is_staff %}
                 <li class="nav-item">
-                    <a class="nav-link" href="admin/">Admin</a>
+                    <a class="nav-link" href="/admin/">Admin</a>
                 </li>
             {% endif %}
-            <button class="btn btn-outline-danger my-2 my-sm-0" onclick="location.href='account/logout/';">Deconnexion</button>
+            <button class="btn btn-outline-danger my-2 my-sm-0" onclick="location.href='/account/logout/';">Deconnexion</button>
 
+        </ul>
+        {% else %}
+        <ul class="navbar-nav mr-auto">
+        </ul>
+        <ul class="navbar-nav navbar-right">
+            <li>
+                <button class="btn btn-outline-secondary my-2 my-sm-0" onclick="location.href='/account/login/';">Se connecter</button>
+            </li>
+            <li>
+                <button class="btn btn-outline-success my-2 my-sm-0" onclick="location.href='/account/signup/';">S'inscrire</button>
+            </li>
         </ul>
         {% endif %}
     </div>

@@ -24,7 +24,7 @@ from django.urls import path, include
 from .views import index, trajet, SignupView, ListReservations, \
     ReservationDetailView, reserver, trajet_prix,\
     billet_generator, GareAutoComplete, change_password, \
-    UpdateUser, DetailUser
+    UpdateUser, DetailUser, statistics, ReservationDeleteView
 
 urlpatterns = [
     path("", index, name="homepage"),
@@ -36,11 +36,11 @@ urlpatterns = [
     path('account/detail/<int:pk>', DetailUser.as_view(), name='detail-profile'),
     path('trajet/', trajet, name="trajet"),
     path('reservations/', ListReservations.as_view(), name="reservations"),
-    path('reservations/<slug:pk>', ReservationDetailView.as_view(),
-         name='detail_reservation'),
+    path('reservations/<slug:pk>/detail/', ReservationDetailView.as_view(),name='detail_reservation'),
+    path('reservations/<slug:pk>/delete/', ReservationDeleteView.as_view(), name='delete-reservation'),
     path('trajet/reserver/', reserver, name="reserver"),
     path('trajet/prix', trajet_prix, name='trajet_prix'),
     path('billet/<slug:reservation_id>/', billet_generator, name='billet'),
     path('trajet/gare-autocomplete/', GareAutoComplete, name='gare-autocomplete'),
-    # url(r'^gare-autocomplete/$', GareAutocomplete.as_view(), name='gare-autocomplete'),
+    path('statistics/', statistics, name='statistics' ),
 ]

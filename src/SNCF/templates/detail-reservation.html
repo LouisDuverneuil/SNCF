@@ -20,27 +20,37 @@
 
     {% include 'navbar.html' %}
     <div class="container mg-t">
-        <h2>Récapitulatif de ma réservation</h2>
-        {% block content %}
-        
-        {{ object.prenom }} {{ object.nom }}
-        <br>
-        Départ de {{ object.trajet.gare_depart }} le {{ object.trajet.date_depart}} à {{ object.trajet.heure_depart }}
-        <br>
-        Arrivée à {{ object.trajet.gare_arrivee }} le {{ object.trajet.date_arrivee}} à {{ object.trajet.heure_arrivee }}
-        <br>
-        Prix : {{ object.prix}}
-        <br>
-        Train n° {{ object.trajet.train.id }}
-        <br>
-        Voiture n° {{ object.place.voiture }}, place n° {{ object.place.numero }}
-        ({% if object.place.situation == "C"%}
-            Couloir
-        {% else %}
-            Fenêtre
-        {% endif %})
-        
-        {% endblock %}
+        <div class="text-center">
+            <h2>Récapitulatif de ma réservation</h2>
+            {% block content %}
+
+            {{ object.prenom }} {{ object.nom }}
+            <br>
+            Date de naissance du voyageur: {{ object.date_naissance}}
+            <br>
+            Départ de {{ object.trajet.gare_depart }} le {{ object.trajet.date_depart}} à {{ object.trajet.heure_depart }}
+            <br>
+            Arrivée à {{ object.trajet.gare_arrivee }} le {{ object.trajet.date_arrivee}} à {{ object.trajet.heure_arrivee }}
+            <br>
+            Prix : {{ object.prix}}
+            <br>
+            Train n° {{ object.trajet.train.id }}
+            <br>
+            {{ object.place }}
+            ({% if object.place.situation == "C"%}
+                Couloir
+            {% else %}
+                Fenêtre
+            {% endif %})
+
+            {% endblock %}
+
+            <br> <br>
+            <div class="col">
+                <a href="{% url 'billet' reservation_id=reservation.id %}" class="btn btn-outline-primary">Billet</a>
+                <a href="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-outline-danger">Annuler</a>
+            </div>
+        </div>
     </div>
 
 </body>

@@ -1,0 +1,338 @@
+[
+    {
+        "model": "website.Gare",
+        "pk": 5,
+        "fields": {
+            "ville": 5,
+            "nom": "Gare du Nord"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 6,
+        "fields": {
+            "ville": 5,
+            "nom": "Gare de Lyon"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 7,
+        "fields": {
+            "ville": 5,
+            "nom": "Gare Saint-Lazare"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 8,
+        "fields": {
+            "ville": 5,
+            "nom": "Gare Montparnasse"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 9,
+        "fields": {
+            "ville": 5,
+            "nom": "Gare d'Haussmann - Saint-Lazare"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 10,
+        "fields": {
+            "ville": 5,
+            "nom": "Gare de l'Est"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 11,
+        "fields": {
+            "ville": 6,
+            "nom": "Gare de Lyon-Part-Dieu"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 12,
+        "fields": {
+            "ville": 6,
+            "nom": "Gare de Lyon-Perrache"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 13,
+        "fields": {
+            "ville": 7,
+            "nom": "Gare de Strasbourg-Ville"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 14,
+        "fields": {
+            "ville": 8,
+            "nom": "Gare de Lille-Flandres"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 15,
+        "fields": {
+            "ville": 8,
+            "nom": "Gare de Lille - Europe"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 16,
+        "fields": {
+            "ville": 9,
+            "nom": "Gare de Bordeaux-Saint-Jean"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 17,
+        "fields": {
+            "ville": 10,
+            "nom": "Gare de Marseille-Saint-Charles"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 18,
+        "fields": {
+            "ville": 11,
+            "nom": "Gare de Nantes"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 19,
+        "fields": {
+            "ville": 12,
+            "nom": "Gare de Rennes"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 20,
+        "fields": {
+            "ville": 13,
+            "nom": "Gare de Toulouse-Matabiau"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 21,
+        "fields": {
+            "ville": 14,
+            "nom": "Gare de Nice-Ville"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 22,
+        "fields": {
+            "ville": 15,
+            "nom": "Gare de Nancy-Ville"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 23,
+        "fields": {
+            "ville": 16,
+            "nom": "Gare de Montpellier-Saint-Roch"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 24,
+        "fields": {
+            "ville": 17,
+            "nom": "Gare de Grenoble"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 25,
+        "fields": {
+            "ville": 18,
+            "nom": "Gare de Metz-Ville"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 26,
+        "fields": {
+            "ville": 19,
+            "nom": "Gare de Rouen-Rive-Droite"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 27,
+        "fields": {
+            "ville": 20,
+            "nom": "Gare de Dijon-Ville"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 28,
+        "fields": {
+            "ville": 21,
+            "nom": "Gare d'Angers-Saint-Laud"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 29,
+        "fields": {
+            "ville": 22,
+            "nom": "Gare d'Amiens"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 30,
+        "fields": {
+            "ville": 23,
+            "nom": "Gare de Mulhouse-Ville"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 31,
+        "fields": {
+            "ville": 24,
+            "nom": "Gare de Toulon"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 32,
+        "fields": {
+            "ville": 25,
+            "nom": "Gare du Mans"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 33,
+        "fields": {
+            "ville": 26,
+            "nom": "Gare de Tours"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 34,
+        "fields": {
+            "ville": 27,
+            "nom": "Gare d'Arras"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 35,
+        "fields": {
+            "ville": 28,
+            "nom": "Gare de Colmar"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 36,
+        "fields": {
+            "ville": 29,
+            "nom": "Gare de Nîmes"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 37,
+        "fields": {
+            "ville": 30,
+            "nom": "Gare de Reims"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 38,
+        "fields": {
+            "ville": 31,
+            "nom": "Gare d'Aix-en-Provence TGV"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 39,
+        "fields": {
+            "ville": 32,
+            "nom": "Gare de Cannes"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 40,
+        "fields": {
+            "ville": 33,
+            "nom": "Gare de Clermont-Ferrand"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 41,
+        "fields": {
+            "ville": 34,
+            "nom": "Gare de Chambéry - Challes-les-Eaux"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 42,
+        "fields": {
+            "ville": 35,
+            "nom": "Gare d'Orléans"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 43,
+        "fields": {
+            "ville": 36,
+            "nom": "Gare de Saint-Étienne-Châteaucreux"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 44,
+        "fields": {
+            "ville": 37,
+            "nom": "Gare de Valenciennes"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 45,
+        "fields": {
+            "ville": 38,
+            "nom": "Gare de Poitiers"
+        }
+    },
+    {
+        "model": "website.Gare",
+        "pk": 46,
+        "fields": {
+            "ville": 39,
+            "nom": "Gare de Caen"
+        }
+    }
+]

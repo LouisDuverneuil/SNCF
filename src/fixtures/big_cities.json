@@ -1,0 +1,247 @@
+[
+    {
+        "model": "website.Ville",
+        "pk": 5,
+        "fields": {
+            "nom": "Paris"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 6,
+        "fields": {
+            "nom": "Lyon"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 7,
+        "fields": {
+            "nom": "Strasbourg"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 8,
+        "fields": {
+            "nom": "Lille"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 9,
+        "fields": {
+            "nom": "Bordeaux"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 10,
+        "fields": {
+            "nom": "Marseille"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 11,
+        "fields": {
+            "nom": "Nantes"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 12,
+        "fields": {
+            "nom": "Rennes"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 13,
+        "fields": {
+            "nom": "Toulouse"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 14,
+        "fields": {
+            "nom": "Nice"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 15,
+        "fields": {
+            "nom": "Nancy"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 16,
+        "fields": {
+            "nom": "Montpellier"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 17,
+        "fields": {
+            "nom": "Grenoble"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 18,
+        "fields": {
+            "nom": "Metz"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 19,
+        "fields": {
+            "nom": "Rouen"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 20,
+        "fields": {
+            "nom": "Dijon"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 21,
+        "fields": {
+            "nom": "Angers"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 22,
+        "fields": {
+            "nom": "Amiens"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 23,
+        "fields": {
+            "nom": "Mulhouse"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 24,
+        "fields": {
+            "nom": "Toulon"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 25,
+        "fields": {
+            "nom": "Le Mans"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 26,
+        "fields": {
+            "nom": "Tours"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 27,
+        "fields": {
+            "nom": "Arras"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 28,
+        "fields": {
+            "nom": "Colmar"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 29,
+        "fields": {
+            "nom": "Nîmes"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 30,
+        "fields": {
+            "nom": "Reims"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 31,
+        "fields": {
+            "nom": "Aix-en-Provence"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 32,
+        "fields": {
+            "nom": "Cannes"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 33,
+        "fields": {
+            "nom": "Clermont-Ferrand"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 34,
+        "fields": {
+            "nom": "Chambéry"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 35,
+        "fields": {
+            "nom": "Orléans"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 36,
+        "fields": {
+            "nom": "Saint-Étienne"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 37,
+        "fields": {
+            "nom": "Valenciennes"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 38,
+        "fields": {
+            "nom": "Poitiers"
+        }
+    },
+    {
+        "model": "website.Ville",
+        "pk": 39,
+        "fields": {
+            "nom": "Caen"
+        }
+    }
+]

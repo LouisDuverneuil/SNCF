@@ -13,6 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage
 from django import forms
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, Http404, FileResponse
 from django.shortcuts import render, redirect
 from django.template import RequestContext
@@ -84,6 +85,7 @@ class ReservationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView)
     model = Reservation
     template_name = "detail-reservation.html"
     # context_object_name = ""
+    permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
 
     def test_func(self):
         reservation = Reservation.objects.get(pk=self.kwargs["pk"])
@@ -105,17 +107,33 @@ class ListReservations(LoginRequiredMixin, ListView):
     model = Reservation
     template_name = "list-reservations.html"
     # paginate_by = 2
-    permission_denied_message = "Hop Hop Hop, où vas-tu petit coquin. Connectes toi pour en voir plus"
+    permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
 
     def get_queryset(self):
-        return Reservation.objects.filter(user=self.request.user).order_by("-trajet__date_depart")
+        # qs = Reservation.objects.filter(user=self.request.user).order_by("-trajet__date_depart")
+        qs = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
+        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE 
+        "website_reservation"."user_id" = %s ORDER BY "website_trajet"."date_depart" DESC """, [self.request.user.id])
+        return list(qs)
 
     def get_context_data(self, ** kwargs):
         context = super().get_context_data(**kwargs)
         queries = self.get_queryset()
         # on limite à 5 trajets anciens
-        context["old_reservations"] = queries.exclude(trajet__date_depart__gt =datetime.date.today())[:5]
-        context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
+        print("context :")
+        # context["old_reservations"] = queries.exclude(trajet__date_depart__gt=datetime.date.today())[:5]
+        context["old_reservations"] = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
+        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
+        "website_reservation"."user_id" = %s AND NOT ("website_trajet"."date_depart" > %s)) ORDER BY 
+        "website_trajet"."date_depart" DESC LIMIT 5 """, [self.request.user.id, str(datetime.date.today())])
+        # context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
+        context["new_reservations"] = Reservation.objects.raw("""SELECT "website_reservation"."id", "website_reservation"."user_id", 
+        "website_reservation"."trajet_id", "website_reservation"."prix", "website_reservation"."place_id", 
+        "website_reservation"."reduction_id", "website_reservation"."nom", "website_reservation"."prenom", 
+        "website_reservation"."date_naissance", "website_reservation"."date" FROM "website_reservation" INNER JOIN 
+        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
+        "website_reservation"."user_id" = %s AND "website_trajet"."date_depart" > %s) ORDER BY 
+        "website_trajet"."date_depart" DESC """, [self.request.user.id, str(datetime.date.today())])
         return context
 
 
@@ -148,9 +166,8 @@ class CreateReservation(LoginRequiredMixin, CreateView):
     widgets = {
         'trajet': forms.Textarea(attrs={'readonly': 'readonly'})
     }
-    permission_denied_message = "Hop Hop Hop, où vas-tu petit coquin. Connectes toi pour en voir plus"
+    permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
 
-    # form = CreateReservation
 
 
 @login_required
@@ -194,22 +211,17 @@ def trajet(request):
             context["gare_arrivee_value_initial_id"] = gare_arrivee.id
             context["gare_depart_value_initial"] = gare_depart_form
             context["gare_depart_value_initial_id"] = gare_depart.id
-            trajet_list = Trajet.objects.filter(
-                gare_depart=gare_depart,
-                gare_arrivee=gare_arrivee,
-                heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
-                date_depart=date_depart_form,
-            ).order_by("heure_depart")
-            # trajet_list = Trajet.objects.raw("""SELECT "website_trajet"."id", "website_trajet"."date_depart",
-            # "website_trajet"."heure_depart", "website_trajet"."date_arrivee", "website_trajet"."heure_arrivee",
-            # "website_trajet"."prix", "website_trajet"."train_id", "website_trajet"."gare_depart_id",
-            # "website_trajet"."gare_arrivee_id" FROM "website_trajet" WHERE ("website_trajet"."date_depart" = %s AND
-            # "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
-            # "website_trajet"."heure_depart" BETWEEN %s AND 23:59:00) ORDER BY "website_trajet"."heure_depart"
-            # ASC""", [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), heure_depart_form]) #
-            # date_depart_form , heure_depart_form
-            print(f"209 : trajet_list.query : {trajet_list.query}")
-
+            # trajet_list = Trajet.objects.filter(
+            #     gare_depart=gare_depart,
+            #     gare_arrivee=gare_arrivee,
+            #     heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
+            #     date_depart=date_depart_form,
+            # ).order_by("heure_depart")
+            l = [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), str(heure_depart_form)]
+            trajet_list = Trajet.objects.raw("""SELECT * WHERE ("website_trajet"."date_depart" = %s AND
+            "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
+            "website_trajet"."heure_depart" BETWEEN %s AND "23:59:00") ORDER BY "website_trajet"."heure_depart"
+            ASC""", l)
             form.fields['gare_depart'].initial = gare_depart.nom
             form.fields['gare_arrivee'].initial = gare_arrivee.nom
             form.fields['date_depart'].initial = datetime.datetime.strptime(
@@ -219,7 +231,6 @@ def trajet(request):
 
             trajet_list = list(trajet_list)
             for trajet in trajet_list:
-                # TODO : prendre la valeur de trajet correspondant au nombre de places restantes
                 places_restantes = trajet.places_libres
                 if places_restantes == 0:
                     trajet.prix = "Complet"
@@ -246,6 +257,7 @@ def trajet(request):
 
 
 def reserver(request):
+    # TODO : traduire en SQL
     trajet_id = int(request.POST.get("trajet_id"))
     nom = request.POST.get("nom")
     prenom = request.POST.get("prenom")
@@ -266,10 +278,17 @@ def reserver(request):
     # Trouve une place
     # Cherche les voitures du trajet pour trouver les places
     voitures = Voiture.objects.filter(train=request_trajet.train)
+    # voitures = Voiture.objects.raw("""  """)
+    print("voiture :")
+    print(voitures.query)
     # Places du trajet
     places_trajet = Place.objects.filter(voiture__in=voitures)
+    print("places_trajet :")
+    print(places_trajet.query)
     # Reservations associées au trajet
     reservations = Reservation.objects.filter(trajet=request_trajet)
+    print("places_trajet :")
+    print(places_trajet.query)
     # Places déjà réservées
     places_reservees = list(map(lambda x: x.place, list(reservations)))
     # Places du trajet disponibles
@@ -306,11 +325,13 @@ def reserver(request):
 
 def trajet_prix(request):
     trajet_id = int(request.POST.get("trajet_id"))
-    reduction = Reduction.objects.get(id=request.POST.get("reduction"))
-    print(f"request.POST.get('date_naissance') : {request.POST.get('date_naissance')}")
+    # reduction = Reduction.objects.get(id=request.POST.get("reduction"))
+    reduction = Reduction.objects.raw(""" SELECT * FROM "website_reduction" WHERE 
+    "website_reduction"."id" = %s """, [request.POST.get("reduction")])[0]
     date_naissance = request.POST.get("date_naissance")
-    print(type(date_naissance))
-    trajet = Trajet.objects.get(pk=trajet_id)
+    # trajet = Trajet.objects.get(pk=trajet_id)
+    trajet = Trajet.objects.raw(""" SELECT * FROM "website_trajet" WHERE 
+    "website_trajet"."id" = %s """, [str(trajet_id)])[0]
     prix = calculate_prix(trajet=trajet, reduction=reduction, born=date_naissance)
     return JsonResponse({"prix": prix})
 
@@ -347,7 +368,12 @@ def billet_generator(request, reservation_id):
 @login_required
 def GareAutoComplete(request):
     gare_text = request.POST.get("gare_text")
-    gares = Gare.objects.filter(nom__icontains=gare_text).order_by("nom")
+    # gares = Gare.objects.filter(Q(nom__icontains=gare_text) | Q(ville__nom__icontains=gare_text)).order_by("nom")
+    # gares = Gare.objects.filter(nom__icontains=gare_text).order_by("nom")
+    gares = list(Gare.objects.raw("""SELECT * FROM 
+    "website_gare" INNER JOIN "website_ville" ON ("website_gare"."ville_id" = "website_ville"."id") WHERE (
+    "website_gare"."nom" LIKE %s ESCAPE '\\' OR "website_ville"."nom" LIKE %s ESCAPE '\\') ORDER BY 
+    "website_gare"."nom" ASC """, [f"%{str(gare_text)}%", f"%{str(gare_text)}%"]))
     context = {gare.nom: gare.id for gare in gares}
     return JsonResponse(context)
 
@@ -355,15 +381,18 @@ def GareAutoComplete(request):
 @login_required
 def statistics(request):
     context = {}
+    # my_resa = Reservation.objects.filter(user=request.user)
+    my_resa = Reservation.objects.raw("""SELECT * FROM "website_reservation" WHERE 
+    "website_reservation"."user_id" = %s """, [request.user.id])
 
-    my_resa = Reservation.objects.filter(user=request.user)
     if not my_resa:
         return render(request, 'statistics.html', context)
     prices = list(map(lambda x: x.prix, my_resa))
     dates = list(map(lambda x: x.trajet.date_depart, my_resa))
     df_prix = pd.DataFrame({'prix': prices, 'date':dates})
-    print(df_prix)
-    fig_prix = px.line(df_prix, x='date', y='prix')
+    # print(df_prix)
+
+    fig_prix = px.histogram(df_prix, x='date', y='prix')
     fig_prix.update_layout(
         title="Prix des réservations de billet de train au cours du temps",
         xaxis_title='Date de départ du train',
@@ -377,42 +406,3 @@ def statistics(request):
 
 def handler404(request, exception):
     return render(request, '404.html', status=404)
-
-# def calculate_reduction_age(age):
-#     if age <= 8:
-#         my_type = "-8ans"
-#     if 8 < age < 19:
-#         my_type = "-18ans"
-#     if age >= 65:
-#         my_type = "Senior"
-#     else:
-#         my_type = "Aucune"
-#     print(my_type)
-#     my_reduction_age = Reduction.objects.get(type=my_type)
-#     return my_reduction_age
-#
-#
-# def calculate_reduction_date(wait_time):
-#     if wait_time >= 30:
-#         my_type = "J-30"
-#     if 30 > wait_time > 8:
-#         my_type = "J-8"
-#     else:
-#         my_type = "Aucune"
-#     my_reduction_date = Reduction.objects.get(type=my_type)
-#     return my_reduction_date
-#
-#
-# def calculate_prix(trajet, reduction, born):
-#     today = datetime.date.today()
-#     if type(born) == str:
-#         born = datetime.datetime.strptime(born, '%d/%m/%Y')
-#         print(born)
-#     age_voyageur = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-#     reduction_age = calculate_reduction_age(age_voyageur)
-#     waiting_time = (today - trajet.date_depart).days
-#     reduction_date = calculate_reduction_date(waiting_time)
-#     # Application de la réduction liée à une carte de réduction
-#     cumulated_pourcentage = min(reduction.pourcentage + reduction_date.pourcentage + reduction_age.pourcentage, 100)
-#     prix = round(trajet.prix * (1 - cumulated_pourcentage / 100), 2)
-#     return prix

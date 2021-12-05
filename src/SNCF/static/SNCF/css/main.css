@@ -3,9 +3,7 @@ body {
     color: white;
     margin-top:80px;
 }
-nav .navbar-nav li a{
-    color: black !important;
-}
+
 .datepicker {
     margin-top: 80px;
 }
@@ -15,3 +13,4 @@ nav .navbar-nav li a{
     height: 90px;
     align-content: center;
 }
+

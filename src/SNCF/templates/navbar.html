@@ -12,18 +12,18 @@
     <div class="collapse navbar-collapse" id="navbarText">
         {% if user and not user.is_anonymous %}
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" {% if nav_bar == 'home' %}active{% endif %} aria-current="page" href="/">Home</a> {#eventually add active #}
+            <li class="nav-item {% if '/' == request.path %}active{% endif %}">
+                <a class="nav-link"  aria-current="page" href="/">Home</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" {% if context.nav_bar == 'trajet' %}active{% endif %} href="{% url 'trajet' %}">Trajets</a>
+            <li class="nav-item {% if 'trajet' in request.path %}active{% endif %}">
+                <a class="nav-link" href="{% url 'trajet' %}">Trajets</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" {% if context.nav_bar == 'reservations' %}active{% endif %} href="{% url 'reservations' %}">Mes Réservations</a>
+            <li class="nav-item {% if 'reservations' in request.path %}active{% endif %}">
+                <a class="nav-link" href="{% url 'reservations' %}">Mes Réservations</a>
             </li>
         </ul>
         <ul class="navbar-nav navbar-right">
-            <li><a class="nav-link" href="{% url 'detail-profile' pk=user.id %}">Mon Compte</a></li>
+            <li><a class="nav-link {% if 'account' in request.path %}active{% endif %}" href="{% url 'detail-profile' pk=user.id %}">Mon Compte</a></li>
             {% if user.is_staff %}
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/">Admin</a>

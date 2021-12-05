@@ -22,34 +22,66 @@
     {% include 'navbar.html' %}
     <div class="container mg-t">
         <div class="text-center">
-            <h2>Récapitulatif de ma réservation</h2>
-            {% block content %}
+            <h2>Détail de ma réservation</h2>
 
-            {{ object.prenom }} {{ object.nom }}
-            <br>
-            Date de naissance du voyageur: {{ object.date_naissance}}
-            <br>
-            Départ de {{ object.trajet.gare_depart }} le {{ object.trajet.date_depart}} à {{ object.trajet.heure_depart }}
-            <br>
-            Arrivée à {{ object.trajet.gare_arrivee }} le {{ object.trajet.date_arrivee}} à {{ object.trajet.heure_arrivee }}
-            <br>
-            Prix : {{ object.prix}}
-            <br>
-            Train n° {{ object.trajet.train.id }}
-            <br>
-            {{ object.place }}
-            ({% if object.place.situation == "C"%}
-                Couloir
-            {% else %}
-                Fenêtre
-            {% endif %})
+            <div class="card text-dark mb-3">
+                <h5 class="card-header">
+                    Départ le {{ reservation.trajet.date_depart }}
+                </h5>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <h3 class="mr-5">{{ reservation.trajet.heure_depart }}</h3>
+                                        <h5>{{ reservation.trajet.gare_depart }}</h5>
+                                    </span>
+                                    <span>
+                                        <h5>{{ reservation.trajet.prix }} €</h5>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <h3 class="mr-5">{{ reservation.trajet.heure_arrivee }}</h3>
+                                        <h5>{{ reservation.trajet.gare_arrivee }}</h5>
+                                    </span>
+                                    <small>TGV inOUI</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-right d-flex flex-column justify-content-start">
+                            <a href="{% url 'billet' reservation_id=reservation.id %}" target="_blank" class="btn btn-sm btn-outline-success mb-1">Billet</a>
+                            <!--                                <a href="{% url 'billet' reservation_id=reservation.id %}" target="_blank" class="btn btn-outline-primary">Billet</a>-->
+                            <a href ="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-sm btn-outline-danger">Annuler</a>
+                        </div>
+                    </div>
 
-            {% endblock %}
+                    <div class="row"style="padding-top:40px;">
+                        <div class="col-md-2 text-left">
+                            <h5>Voyageur :</h5>
+                        </div>
+                        <div class="col-md-4 text-left">
+                            <h6>Nom : {{ reservation.nom }}</h6>
+                            <h6>Prénom : {{ reservation.prenom }}</h6>
+                            <h6>Né le : {{ reservation.date_naissance }}</h6>
+                        </div>
+                        <div class="col-md-2 text-left">
+                            <h5>Informations :</h5>
+                        </div>
+                        <div class="col-md-3 text-left">
+                            <h6>{{ reservation.place }}</h6>
+                            <h6>Situation : {% if reservation.place.situation == "C"%}Couloir{% else %}Fenêtre{% endif %}</h6>
+                            <h6>Carte de réduction : {{ reservation.reduction }} </h6>
+                        </div>
+                    </div>
+                </div>
 
-            <br> <br>
-            <div class="col">
-                <a href="{% url 'billet' reservation_id=reservation.id %}" class="btn btn-outline-primary">Billet</a>
-                <a href="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-outline-danger">Annuler</a>
+                <small class="card-footer">
+                    Réservé le {{ reservation.date }}
+                </small>
             </div>
         </div>
     </div>

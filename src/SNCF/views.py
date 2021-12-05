@@ -86,7 +86,7 @@ class UpdateUser(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class ReservationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Reservation
     template_name = "detail-reservation.html"
-    # context_object_name = ""
+    context_object_name = "reservation"
     permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
 
     def test_func(self):
@@ -345,7 +345,30 @@ def billet_generator(request, reservation_id):
     # Draw things on the PDF. Here's where the PDF generation happens.
     # See the ReportLab documentation for the full list of functionality.
     # TODO : changer le pdf et mettre toutes les infos
-    p.drawString(100, 100, "C'est mon pdffffffff.")
+
+    p.drawString(90, 800, 'Billet de transport SNCF')
+    p.line(89, 795, 580, 795)
+    p.drawString(90, 700, 'Nom : ')
+    p.drawString(130, 700, str(reservation.nom))
+    p.drawString(90, 680, 'Prénom : ')
+    p.drawString(150, 680, str(reservation.prenom))
+    p.drawString(90, 660, 'Date de naissance : ')
+    p.drawString(210, 660, str(reservation.date_naissance))
+    p.drawString(90, 640, 'Réduction : ')
+    p.drawString(160, 640, str(reservation.reduction.type))
+    p.drawString(90, 620, 'Date de départ : ')
+    p.drawString(200, 620, str(reservation.trajet.date_depart))
+    p.drawString(90, 600, "Date d'arrivée : ")
+    p.drawString(200, 600, str(reservation.trajet.date_arrivee))
+    p.drawString(90, 580, 'Gare de départ : ')
+    p.drawString(190, 580, str(reservation.trajet.gare_depart))
+    p.drawString(90, 560, "Gare d'arrivée : ")
+    p.drawString(190, 560, str(reservation.trajet.gare_arrivee))
+    p.drawString(90, 540, "Place : ")
+    p.drawString(140, 540, str(reservation.place))
+    p.drawString(90, 520, "Situation : ")
+    p.drawString(150, 520, str(reservation.place.situation))
+
 
     # Close the PDF object cleanly, and we're done.
     p.showPage()
@@ -383,7 +406,7 @@ def statistics(request):
     df_prix = pd.DataFrame({'prix': prices, 'date':dates})
     # print(df_prix)
 
-    fig_prix = px.histogram(df_prix, x='date', y='prix')
+    fig_prix = px.line(df_prix, x='date', y='prix')
     fig_prix.update_layout(
         title="Prix des réservations de billet de train au cours du temps",
         xaxis_title='Date de départ du train',

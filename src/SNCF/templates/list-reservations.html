@@ -22,21 +22,43 @@
     {% include 'navbar.html' %}
     <div class="container mg-t">
         <h2>Mes réservations</h2>
-        TODO : ajouter le numéro du billet
         {% block content %}
         <h4>A venir</h4>
         <ul>
             {% for reservation in new_reservations %}
-            <div class="card text-black mb-3">
-                <h5 class="card-header">{{ reservation.trajet.gare_depart }} -> {{ reservation.trajet.gare_arrivee }}</h5>
+            <div class="card text-dark mb-3">
+                <h6 class="card-header">
+                    {{ reservation.trajet.date_depart }}
+                </h6>
                 <div class="card-body">
-                    <h5 class="card-title">{{ reservation.trajet.date_depart }}</h5>
-                    <b class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</b>
-                    <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
-                    <div class="text-center">
-                        <a href="{% url 'detail_reservation' pk=reservation.id %}" class="btn btn-outline-primary">Détail</a>
-                        <a href="{% url 'billet' reservation_id=reservation.id %}" target="_blank" class="btn btn-outline-primary">Billet</a>
-                        <a href="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-outline-danger pull-right">Annuler</a>
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <h3 class="mr-5">{{ reservation.trajet.heure_depart }}</h3>
+                                        <h5>{{ reservation.trajet.gare_depart }}</h5>
+                                    </span>
+                                    <span>
+                                        <h5>{{ reservation.trajet.prix }} €</h5>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <h3 class="mr-5">{{ reservation.trajet.heure_arrivee }}</h3>
+                                        <h5>{{ reservation.trajet.gare_arrivee }}</h5>
+                                    </span>
+                                    <small>TGV inOUI</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-right d-flex flex-column justify-content-start">
+                            <a href="{% url 'detail_reservation' pk=reservation.id %}" class="btn btn-sm btn-outline-primary mb-1">Détail</a>
+                            <!--                                <a href="{% url 'billet' reservation_id=reservation.id %}" target="_blank" class="btn btn-outline-primary">Billet</a>-->
+                            <a href ="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-sm btn-outline-danger">Annuler</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -46,13 +68,40 @@
         <h5>Reservations passées</h5>
         <ul>
             {% for reservation in old_reservations %}
-            <div class="card text-black mb-3">
-                <h6 class="card-header">{{ reservation.trajet.gare_depart }} -> {{ reservation.trajet.gare_arrivee }}</h6>
+            <div class="card text-dark mb-3">
+                <h6 class="card-header">
+                    {{ reservation.trajet.date_depart }}
+                </h6>
                 <div class="card-body">
-                    <h7 class="card-title">{{ reservation.trajet.date_depart }}</h7>
-                    <p class="card-text">{{ reservation.trajet.heure_depart }} - {{ reservation.trajet.heure_arrivee }}</p>
-                    <p class="card-text" style="text-align:right;">{{ reservation.user }} - {{ reservation.prix }} €</p>
-                    <a href="#" class="btn btn-primary">Billet</a>
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <h3 class="mr-5">{{ reservation.trajet.heure_depart }}</h3>
+                                        <h5>{{ reservation.trajet.gare_depart }}</h5>
+                                    </span>
+                                    <span>
+                                        <h5>{{ reservation.trajet.prix }} €</h5>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <h3 class="mr-5">{{ reservation.trajet.heure_arrivee }}</h3>
+                                        <h5>{{ reservation.trajet.gare_arrivee }}</h5>
+                                    </span>
+                                    <small>TGV inOUI</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-right d-flex flex-column justify-content-start">
+                            <a href="{% url 'detail_reservation' pk=reservation.id %}" class="btn btn-sm btn-outline-primary mb-1" disabled>Détail</a>
+                            <!--                                <a href="{% url 'billet' reservation_id=reservation.id %}" target="_blank" class="btn btn-outline-primary">Billet</a>-->
+                            <a href ="{% url 'delete-reservation' pk=reservation.id %}" class="btn btn-sm btn-outline-danger" disabled>Annuler</a>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endfor %}

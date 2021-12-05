@@ -82,7 +82,7 @@
                 <div class="col">
                     <!--                        {{ form.date_depart|as_crispy_field }}-->
                     <div id="div_id_date_depart" class="form-group">
-                        <label for="id_date_depart" class="requiredField control-label" for="date">
+                        <label for="id_date_depart" class="requiredField control-label">
                             Date depart<span class="asteriskField">*</span>
                         </label>
                         <div>
@@ -103,12 +103,7 @@
                         <div>
                             <div class="input-group date">
                                 <input type="time" name="heure_depart" value="{{ form.heure_depart.value }}"
-                                       class="form-control timepickerinput form-control" required id="id_heure_depart"
-                                       dp_config="{&quot;id&quot;: &quot;dp_1&quot;, &quot;picker_type&quot;: &quot;TIME&quot;, &quot;linked_to&quot;: null, &quot;options&quot;: {&quot;showClose&quot;: true, &quot;showClear&quot;: true, &quot;showTodayButton&quot;: true, &quot;format&quot;: &quot;HH:mm&quot;}}"/>
-<!--                                <div class="input-group-addon input-group-append" data-target="#datetimepicker1"-->
-<!--                                     data-toggle="datetimepickerv">-->
-<!--                                    <div class="input-group-text"><i class="glyphicon glyphicon-time"></i></div>-->
-<!--                                </div>-->
+                                       class="form-control timepickerinput form-control" required id="id_heure_depart"/>
                             </div>
                         </div>
                     </div>

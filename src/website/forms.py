@@ -40,12 +40,13 @@ class UpdateUserForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ("email", "nom", "prenom", "reduction")
+        fields = ("email", "nom", "prenom", "reduction", "date_naissance")
         # help_texts = {'reduction': "Carte avantage SNCF ?"}
 
         labels = {
             'reduction': "Carte avantage SNCF",
-            'prenom': 'Prénom'
+            'prenom': 'Prénom',
+            'date_naissance': 'Date de naissance'
         }
 
 

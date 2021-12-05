@@ -50,6 +50,7 @@ class SignupView(CreateView):
         context = super().get_context_data(**kwargs)
         # Add in a QuerySet of all the books
         context['update'] = False
+        context['date'] = datetime.date(year=1972, month=6, day=23).strftime('%d/%m/%Y')
         return context
 
 
@@ -78,6 +79,7 @@ class UpdateUser(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         # Add in a QuerySet of all the books
         context['update'] = True
+        context['date'] = self.request.user.date_naissance
         return context
 
 
@@ -127,10 +129,7 @@ class ListReservations(LoginRequiredMixin, ListView):
         "website_reservation"."user_id" = %s AND NOT ("website_trajet"."date_depart" > %s)) ORDER BY 
         "website_trajet"."date_depart" DESC LIMIT 5 """, [self.request.user.id, str(datetime.date.today())])
         # context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
-        context["new_reservations"] = Reservation.objects.raw("""SELECT "website_reservation"."id", "website_reservation"."user_id", 
-        "website_reservation"."trajet_id", "website_reservation"."prix", "website_reservation"."place_id", 
-        "website_reservation"."reduction_id", "website_reservation"."nom", "website_reservation"."prenom", 
-        "website_reservation"."date_naissance", "website_reservation"."date" FROM "website_reservation" INNER JOIN 
+        context["new_reservations"] = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
         "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
         "website_reservation"."user_id" = %s AND "website_trajet"."date_depart" > %s) ORDER BY 
         "website_trajet"."date_depart" DESC """, [self.request.user.id, str(datetime.date.today())])
@@ -145,7 +144,7 @@ def change_password(request):
             user = form.save()
             update_session_auth_hash(request, user)
             messages.success(request, 'Mot de passe changé avec succès!')
-            return redirect('change_password')
+            return redirect('detail-profile', pk=request.user.id)
         else:
             messages.error(request, "Veuillez corriger l'erreur ci-dessus")
     else:
@@ -180,7 +179,6 @@ def trajet(request):
     trajet_list = []
     if request.method == "POST" and 'recherche' in request.POST:
         form = TrajetForm(request.POST)
-        print(request.POST)
         context['form'] = form
         if form.is_valid():
             base_url = reverse('trajet')
@@ -200,7 +198,6 @@ def trajet(request):
         gare_depart_form = request.GET.get("gare_depart", "")
         gare_arrivee_form = request.GET.get("gare_arrivee", "")
         heure_depart_form = request.GET.get("heure_depart", "")
-        print("gare_arrivee_form")
 
         if gare_depart_form != '':
             gare_depart = Gare.objects.get(nom=gare_depart_form)
@@ -218,7 +215,7 @@ def trajet(request):
             #     date_depart=date_depart_form,
             # ).order_by("heure_depart")
             l = [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), str(heure_depart_form)]
-            trajet_list = Trajet.objects.raw("""SELECT * WHERE ("website_trajet"."date_depart" = %s AND
+            trajet_list = Trajet.objects.raw("""SELECT * FROM "website_trajet" WHERE ("website_trajet"."date_depart" = %s AND
             "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
             "website_trajet"."heure_depart" BETWEEN %s AND "23:59:00") ORDER BY "website_trajet"."heure_depart"
             ASC""", l)
@@ -257,7 +254,6 @@ def trajet(request):
 
 
 def reserver(request):
-    # TODO : traduire en SQL
     trajet_id = int(request.POST.get("trajet_id"))
     nom = request.POST.get("nom")
     prenom = request.POST.get("prenom")
@@ -277,33 +273,32 @@ def reserver(request):
 
     # Trouve une place
     # Cherche les voitures du trajet pour trouver les places
-    voitures = Voiture.objects.filter(train=request_trajet.train)
-    # voitures = Voiture.objects.raw("""  """)
-    print("voiture :")
-    print(voitures.query)
+    # voitures = Voiture.objects.filter(train=request_trajet.train)
     # Places du trajet
-    places_trajet = Place.objects.filter(voiture__in=voitures)
-    print("places_trajet :")
-    print(places_trajet.query)
+    # places_trajet = Place.objects.filter(voiture__in=voitures)
     # Reservations associées au trajet
-    reservations = Reservation.objects.filter(trajet=request_trajet)
-    print("places_trajet :")
-    print(places_trajet.query)
+    # reservations = Reservation.objects.filter(trajet=request_trajet)
     # Places déjà réservées
-    places_reservees = list(map(lambda x: x.place, list(reservations)))
+    # places_reservees = list(map(lambda x: x.place, list(reservations)))
     # Places du trajet disponibles
-    places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees]).filter(situation=situation)
-    print(places_dispo)
+    # places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees]).filter(situation=situation)
+    places_dispo = Place.objects.raw("""SELECT * FROM "website_place" WHERE ("website_place"."voiture_id" IN 
+    (SELECT U0."id" FROM "website_voiture" U0 WHERE U0."train_id" = %s) AND NOT 
+    ("website_place"."id" IN  (SELECT U1."place_id" FROM "website_reservation" U1 WHERE U1."trajet_id" = %s)) 
+    AND "website_place"."situation" = %s) """, [request_trajet.train.id, trajet_id, situation])
     # Si aucune place dispo à cette situation, donner une place à une autre situation
     if len(places_dispo) == 0:
-        places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees])
+        # places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees])
+        places_dispo = Place.objects.raw("""SELECT * FROM "website_place" WHERE ("website_place"."voiture_id" IN 
+        (SELECT U0."id" FROM "website_voiture" U0 WHERE U0."train_id" = %s) AND NOT 
+        ("website_place"."id" IN  (SELECT U1."place_id" FROM "website_reservation" U1 WHERE U1."trajet_id" = %s)))
+        """, [request_trajet.train.id, trajet_id])
     if len(places_dispo) == 0:
         # ne doit pas arriver si le formulaire n'est pas (mal) intentionnellement modifié
         raise Http404("<h1>Aucune place disponible</h1>")
     # choix de la place en fonction de la demande de situation:
     place = random.choice(places_dispo)
     print(place)
-    # try:
     new_reservation = Reservation(
         user=request.user,
         trajet=request_trajet,
@@ -315,9 +310,6 @@ def reserver(request):
         date=timezone.now(),
     )
     new_reservation.save()
-    # except:
-    #     return JsonResponse({"redirect": False,
-    #                          "message_erreur": "Votre réservation n'a pas pu être effectuée, veuillez vérifier les champs du formulaire"})
     print(new_reservation)
     print(new_reservation.trajet)
     return JsonResponse({"redirect": True, "new_reservation":new_reservation.id})
@@ -369,7 +361,6 @@ def billet_generator(request, reservation_id):
 def GareAutoComplete(request):
     gare_text = request.POST.get("gare_text")
     # gares = Gare.objects.filter(Q(nom__icontains=gare_text) | Q(ville__nom__icontains=gare_text)).order_by("nom")
-    # gares = Gare.objects.filter(nom__icontains=gare_text).order_by("nom")
     gares = list(Gare.objects.raw("""SELECT * FROM 
     "website_gare" INNER JOIN "website_ville" ON ("website_gare"."ville_id" = "website_ville"."id") WHERE (
     "website_gare"."nom" LIKE %s ESCAPE '\\' OR "website_ville"."nom" LIKE %s ESCAPE '\\') ORDER BY 

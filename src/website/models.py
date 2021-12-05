@@ -194,10 +194,8 @@ def calculate_prix(trajet, reduction, born):
 
 class Reservation(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    # confirmation = models.BooleanField()
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE)
     prix = models.FloatField(blank=True, null=True)
-    # agence = models.ForeignKey(Agence, blank=True, null=True, on_delete=models.SET_NULL)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     reduction = models.ForeignKey(
         Reduction, null=True, on_delete=models.SET_NULL)
@@ -226,13 +224,12 @@ class Reservation(models.Model):
 @receiver(post_delete, sender=Reservation)
 def del_reservation(sender, instance, **kwargs):
     trajet = instance.trajet
-    trajet.places_libres = trajet.places_libres + 1
+    # Dans tous les cas, le nombre de place est recalculé lors de la méthode save :
     trajet.save()
 
 
 @receiver(post_save, sender=Reservation)
 def add_reservation(sender, instance, **kwargs):
     trajet = instance.trajet
-    trajet.places_libres = trajet.places_libres - 1
     # Dans tous les cas, le nombre de place est recalculé lors de la méthode save :
     trajet.save()

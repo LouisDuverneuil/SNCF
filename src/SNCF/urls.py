@@ -46,7 +46,7 @@ urlpatterns = [
     path('trajet/prix', trajet_prix, name='trajet_prix'),
     path('billet/<slug:reservation_id>/', billet_generator, name='billet'),
     path('trajet/gare-autocomplete/', GareAutoComplete, name='gare-autocomplete'),
-    path('statistics/', statistics, name='statistics' ),
+    path('statistics/', statistics, name='statistics'),
     # re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 
 ]

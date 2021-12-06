@@ -3,6 +3,7 @@ import io
 import os
 import random
 from abc import ABC
+from collections import Counter
 
 import pandas as pd
 import plotly
@@ -22,6 +23,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
+from numpy import cumsum
 from reportlab.pdfgen import canvas
 import plotly.express as px
 
@@ -421,23 +423,38 @@ def statistics(request):
     """ Vue de statistique sur ses trajets. """
 
     context = {}
-    # my_resa = Reservation.objects.filter(user=request.user)
-    my_resa = Reservation.objects.raw("""SELECT * FROM "website_reservation" WHERE 
-    "website_reservation"."user_id" = %s """, [request.user.id])
+    my_resa = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
+    "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE 
+    "website_reservation"."user_id" = %s ORDER BY "website_trajet"."date_depart" ASC """, [request.user.id])
+
+    if not my_resa:
+        context["no_reservation"] = True
+        return render(request, 'statistics.html', context)
+
+    gare_favorite_id, gare_favorite_number_visit = Counter(
+        list(map(lambda x: x.trajet.gare_depart.id, my_resa)) +
+        list(map(lambda x: x.trajet.gare_arrivee.id, my_resa))).most_common(1)[0]
+
+    gare_favorite = Gare.objects.get(id=gare_favorite_id)
+    context["gare_favorite"] = gare_favorite
+    context["gare_favorite_number_visit"] = gare_favorite_number_visit
 
     if not my_resa:
         return render(request, 'statistics.html', context)
-    prices = list(map(lambda x: x.prix, my_resa))
+
+    temps_trajet = list(map(lambda x: (datetime.timedelta(hours=x.trajet.heure_arrivee.hour, minutes=x.trajet.heure_arrivee.minute, seconds=x.trajet.heure_arrivee.second) - datetime.timedelta(hours=x.trajet.heure_depart.hour, minutes=x.trajet.heure_depart.minute, seconds=x.trajet.heure_depart.second)).total_seconds()//60, my_resa))
     dates = list(map(lambda x: x.trajet.date_depart, my_resa))
-    df_prix = pd.DataFrame({'prix': prices, 'date': dates})
-
-    fig_prix = px.line(df_prix, x='date', y='prix')
-    fig_prix.update_layout(
-        title="Prix des réservations de billet de train au cours du temps",
+    temps_trajet = cumsum(temps_trajet)
+    print(temps_trajet)
+    df_prix = pd.DataFrame({'temps_trajet': temps_trajet, 'date': dates})
+    fig_temps = px.line(df_prix, x='date', y='temps_trajet')
+    fig_temps.update_layout(
+        title="Temps que vous avez passé dans des TGV au cours du temps",
         xaxis_title='Date de départ du train',
-        yaxis_title='Prix du billet (en €)')
+        yaxis_title='Temps cumulé (en minutes)')
+    fig_temps.update_traces(marker={'size': 15})
 
-    plt_div_prix = plotly.offline.plot(fig_prix, output_type='div')
+    plt_div_prix = plotly.offline.plot(fig_temps, output_type='div')
 
     context["graph_prix"] = plt_div_prix
     return render(request, 'statistics.html', context)

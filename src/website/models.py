@@ -207,6 +207,7 @@ def calculate_reduction_date(wait_time):
     Calcul de la réduction associée à la date de réservation
     Retourne la réduction associée.
     """
+    print(wait_time)
     if wait_time >= 30:
         my_type = "J-30"
     elif 30 > wait_time > 8:
@@ -214,6 +215,7 @@ def calculate_reduction_date(wait_time):
     else:
         my_type = "Aucune"
     my_reduction_date = Reduction.objects.get(type=my_type)
+    print(my_reduction_date)
     return my_reduction_date
 
 
@@ -228,11 +230,15 @@ def calculate_prix(trajet, reduction, born):
     today = datetime.date.today()
     if type(born) == str:
         born = datetime.datetime.strptime(born, '%d/%m/%Y')
+    # calcul de l'age du voyageur :
     age_voyageur = int(today.year - born.year - ((today.month, today.day) < (born.month, born.day)))
+    # réduction associée à l'âge
     reduction_age = calculate_reduction_age(age_voyageur)
-    waiting_time = (today - trajet.date_depart).days
+    # dans combien de jours est le trajet
+    waiting_time = (trajet.date_depart - today).days
+    # réduction associée
     reduction_date = calculate_reduction_date(waiting_time)
-    # Application de la réduction liée à une carte de réduction
+    # Application de la réduction liée à une carte de réduction et les réductions automatiques
     cumulated_pourcentage = min(reduction.pourcentage + reduction_date.pourcentage + reduction_age.pourcentage, 100)
     prix = round(trajet.prix * (1 - cumulated_pourcentage / 100), 2)
     return prix

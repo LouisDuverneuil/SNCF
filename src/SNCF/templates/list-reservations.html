@@ -22,6 +22,7 @@
     {% include 'navbar.html' %}
     <div class="container mg-t">
         <h2>Mes réservations</h2>
+        {% if new_reservations or old_reservations %}
         {% block content %}
         <h4>A venir</h4>
         <ul>
@@ -107,24 +108,9 @@
             {% endfor %}
         </ul>
         {% endblock %}
-
-<!--        <div class="pagination">-->
-<!--                <span class="step-links">-->
-<!--                    {% if page_obj.has_previous %}-->
-<!--                        <a href="?page=1">&laquo; first</a>-->
-<!--                        <a href="?page={{ page_obj.previous_page_number }}">previous</a>-->
-<!--                    {% endif %}-->
-
-<!--                    <span class="current">-->
-<!--                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.-->
-<!--                    </span>-->
-
-<!--                    {% if page_obj.has_next %}-->
-<!--                        <a href="?page={{ page_obj.next_page_number }}">next</a>-->
-<!--                        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>-->
-<!--                    {% endif %}-->
-<!--                </span>-->
-<!--        </div>-->
+        {% else %}
+            <h3 style="padding-top:40px">Oh Oh ... C'est un peu vide ici ! Réserves ton premier train dans l'onglet trajet.</h3>
+        {% endif %}
     </div>
 
 </body>

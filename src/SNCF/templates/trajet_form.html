@@ -245,12 +245,12 @@
                             <div class="col" id="prenom">
                                 {{ second_form.prenom|as_crispy_field }}
                             </div>
-                            <div class="row">
-                                {{ second_form.date_naissance|as_crispy_field }}
-                            </div>
-                            <div class="row">
-                                {{ second_form.situation|as_crispy_field }}
-                            </div>
+                        </div>
+                        <div class="row">
+                            {{ second_form.date_naissance|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            {{ second_form.situation|as_crispy_field }}
                         </div>
                         {% for message in errors.values %}
                             <h3 style="color: red;">

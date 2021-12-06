@@ -78,11 +78,11 @@
             {{ form.password2|as_crispy_field }}
         </div>
         {% endif %}
-        {% for message in errors.values %}
-            <h2 style="color: red;">
-                {{ message }}
-            </h2>
-        {% endfor %}
+<!--        {% for message in errors.values %}-->
+<!--            <h2 style="color: red;">-->
+<!--                {{ message }}-->
+<!--            </h2>-->
+<!--        {% endfor %}-->
 
         <div class="text-center">
             {% if not update %}

@@ -25,12 +25,12 @@ from django.views.generic import CreateView, ListView, DetailView, UpdateView, D
 from reportlab.pdfgen import canvas
 import plotly.express as px
 
-
 from website.forms import SignupForm, TrajetForm, ReservationForm, UpdateUserForm
 from website.models import CustomUser, Trajet, Gare, Reservation, Place, Voiture, Reduction, calculate_prix
 
 
 def index(request):
+    """ Vue home pour ajouter quelques informations et associer le fichier html """
     context = {"date": datetime.date.today()}
     try:
         context["user_nom"] = request.user.nom
@@ -40,112 +40,80 @@ def index(request):
 
 
 class SignupView(CreateView):
-    model = CustomUser
-    template_name = "account/signup.html"
-    form_class = SignupForm
-    success_url = reverse_lazy("account/login")
+    """
+    Vue d'inscription au site
+    """
+    model = CustomUser  # association au modèle de User
+    template_name = "account/signup.html"  # association au fichier html
+    form_class = SignupForm  # formulaire d'inscription importé depuis le fichier
+    success_url = reverse_lazy("login")  # rediriger vers la vue de connexion ensuite
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
+        # Ajout de données dans le contexte
         context['update'] = False
         context['date'] = datetime.date(year=1972, month=6, day=23).strftime('%d/%m/%Y')
         return context
 
 
 class DetailUser(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """
+    Vue de détail pour un utilisateur: vue personnifiée de son profil
+    """
     model = CustomUser
     template_name = "account/detail-user.html"
 
     def test_func(self):
+        """ Ajout d'une fonction de test : un utilisateur ne peut se connecter
+        qu'à sa propre page de détail d'utilisateur. """
         return self.request.user.id == self.kwargs["pk"]
 
 
-class UpdateUser(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class UpdateCustomUser(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """
+    Vue pour éditer son profil (sans le mot de passe)
+    Ici, le même fichier html que pour s'inscrire est utilisé, et pour les différencier,
+    des paramètres de contexte sont envoyés au html.
+    UserPassesTestMixin permet d'ajouter une sécurité pour ne pas pouvoir modifier le profil de quelqu'un d'autre
+    """
     model = CustomUser
     template_name = "account/signup.html"
-    form_class = UpdateUserForm
-    # success_url = reverse_lazy("detail-profile", kwargs={'pk': request.user.id})
+    form_class = UpdateUserForm  # formulaire d'update du profil sans le mot de passe
 
     def get_success_url(self):
+        """ Redirection si changement effectué """
         return reverse_lazy("detail-profile", kwargs={'pk': self.request.user.id})
 
     def test_func(self):
+        """ Ajout d'une fonction de test : un utilisateur ne peut se connecter
+        qu'à sa propre page d'update d'utilisateur. """
         return self.request.user.id == self.kwargs["pk"]
 
     def get_context_data(self, **kwargs):
+        """ Ajout de contexte pour le html """
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
         context['update'] = True
-        context['date'] = self.request.user.date_naissance
-        return context
-
-
-class ReservationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-    model = Reservation
-    template_name = "detail-reservation.html"
-    context_object_name = "reservation"
-    permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
-
-    def test_func(self):
-        reservation = Reservation.objects.get(pk=self.kwargs["pk"])
-        return self.request.user.id == reservation.user.id
-
-
-class ReservationDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = Reservation
-    template_name = "delete-reservation.html"
-    success_url = reverse_lazy("reservations")
-    # context_object_name = "reservation"
-
-    def test_func(self):
-        reservation = Reservation.objects.get(pk=self.kwargs["pk"])
-        return self.request.user.id == reservation.user.id
-
-
-class ListReservations(LoginRequiredMixin, ListView):
-    model = Reservation
-    template_name = "list-reservations.html"
-    # paginate_by = 2
-    permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
-
-    def get_queryset(self):
-        # qs = Reservation.objects.filter(user=self.request.user).order_by("-trajet__date_depart")
-        qs = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
-        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE 
-        "website_reservation"."user_id" = %s ORDER BY "website_trajet"."date_depart" DESC """, [self.request.user.id])
-        return list(qs)
-
-    def get_context_data(self, ** kwargs):
-        context = super().get_context_data(**kwargs)
-        queries = self.get_queryset()
-        # on limite à 5 trajets anciens
-        print("context :")
-        # context["old_reservations"] = queries.exclude(trajet__date_depart__gt=datetime.date.today())[:5]
-        context["old_reservations"] = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
-        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
-        "website_reservation"."user_id" = %s AND NOT ("website_trajet"."date_depart" > %s)) ORDER BY 
-        "website_trajet"."date_depart" DESC LIMIT 5 """, [self.request.user.id, str(datetime.date.today())])
-        # context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
-        context["new_reservations"] = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
-        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
-        "website_reservation"."user_id" = %s AND "website_trajet"."date_depart" > %s) ORDER BY 
-        "website_trajet"."date_depart" DESC """, [self.request.user.id, str(datetime.date.today())])
+        context['date'] = self.request.user.date_naissance.strftime('%d/%m/%Y')
         return context
 
 
 @login_required
 def change_password(request):
+    """ Fonction pour mettre à jour son mot de passe """
+    # utilisation de la méthode post
     if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
+        form = PasswordChangeForm(request.user, request.POST)  # formulaire importé de forms.py
         if form.is_valid():
+            # s'il est valide, enregistrer le nouveau mot de passe de l'utilisateur
             user = form.save()
             update_session_auth_hash(request, user)
             messages.success(request, 'Mot de passe changé avec succès!')
+            # rediriger vers la vue de détail du profil
             return redirect('detail-profile', pk=request.user.id)
         else:
+            # s'il n'est pas valide retourner un message d'erreur
             messages.error(request, "Veuillez corriger l'erreur ci-dessus")
     else:
         form = PasswordChangeForm(request.user)
@@ -154,40 +122,91 @@ def change_password(request):
     })
 
 
-class CreateReservation(LoginRequiredMixin, CreateView):
-    model = Reservation
-    template_name = "create-reservation.html"
-    personne = forms.SelectMultiple()
-    fields = (
-        'trajet',
-        'place',
-    )
-    widgets = {
-        'trajet': forms.Textarea(attrs={'readonly': 'readonly'})
-    }
+class ReservationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """ Vue détaillée d'une réservation """
+    model = Reservation  # associé au modèle de réservation
+    template_name = "detail-reservation.html"  # associé au fichier de vue html
+    context_object_name = "reservation"  # nom du paramètre dans le html, correspond à une réservation.
+    # message de redirection pour les curieux :
     permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
 
+    def test_func(self):
+        """ Ajout d'une fonction de test : un utilisateur ne peut se connecter
+        qu'à sa propre page de détail de réservation. """
+        reservation = Reservation.objects.get(pk=self.kwargs["pk"])
+        return self.request.user.id == reservation.user.id
+
+
+class ReservationDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """ Vue de suppression d'une réservation """
+    model = Reservation
+    template_name = "delete-reservation.html"
+    success_url = reverse_lazy("reservations")  # redirection
+
+    def test_func(self):
+        """ Ajout d'une fonction de test : un utilisateur ne peut se connecter
+        qu'à sa propre page de suppression de réservation. """
+        reservation = Reservation.objects.get(pk=self.kwargs["pk"])
+        return self.request.user.id == reservation.user.id
+
+
+class ListReservations(LoginRequiredMixin, ListView):
+    """ Vue de listing des réservations (à venir ou passées) """
+    model = Reservation
+    template_name = "list-reservations.html"
+    permission_denied_message = "Hop Hop Hop, où vas-tu. Connectes toi pour en voir plus"
+
+    def get_queryset(self):
+        """ Limiter la vue aux trajets réservés par l'utilisateur """
+        # qs = Reservation.objects.filter(user=self.request.user).order_by("-trajet__date_depart")
+        qs = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
+        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE 
+        "website_reservation"."user_id" = %s ORDER BY "website_trajet"."date_depart" DESC """, [self.request.user.id])
+        return list(qs)
+
+    def get_context_data(self, **kwargs):
+        """ Découpage des données entre anciennes réservations et nouvelles réservations """
+        context = super().get_context_data(**kwargs)
+        queries = self.get_queryset()
+        # on limite à 10 trajets anciens
+        # context["old_reservations"] = queries.exclude(trajet__date_depart__gt=datetime.date.today())[:10]
+        # réservations anciennes
+        context["old_reservations"] = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
+        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
+        "website_reservation"."user_id" = %s AND NOT ("website_trajet"."date_depart" > %s)) ORDER BY 
+        "website_trajet"."date_depart" DESC LIMIT 10 """, [self.request.user.id, str(datetime.date.today())])
+        # context["new_reservations"] = queries.filter(trajet__date_depart__gt =datetime.date.today())
+        # réservations dont le trajet est à venir
+        context["new_reservations"] = Reservation.objects.raw("""SELECT * FROM "website_reservation" INNER JOIN 
+        "website_trajet" ON ("website_reservation"."trajet_id" = "website_trajet"."id") WHERE (
+        "website_reservation"."user_id" = %s AND "website_trajet"."date_depart" > %s) ORDER BY 
+        "website_trajet"."date_depart" DESC """, [self.request.user.id, str(datetime.date.today())])
+        return context
 
 
 @login_required
 def trajet(request):
+    """ Fonction de vue des trajets disponibles en fonction des filtres appliqués """
     user_profile = CustomUser.objects.get(id=request.user.id)
-    context = {'user_profile_nom':user_profile.nom,
-               'user_profile_prenom':user_profile.prenom,
-               'user_profile_date_naissance':user_profile.date_naissance.strftime('%d/%m/%Y')
-    }
+    # envoyer dans le contexte les informations du user pour fixer les valeurs initiales du formulaire :
+    context = {'user_profile_nom': user_profile.nom,
+               'user_profile_prenom': user_profile.prenom,
+               'user_profile_date_naissance': user_profile.date_naissance.strftime('%d/%m/%Y')
+               }
     trajet_list = []
     if request.method == "POST" and 'recherche' in request.POST:
-        form = TrajetForm(request.POST)
+        # si la méthode d'envoi du formulaire est post, et que cela correspond à la recherche de train :
+        form = TrajetForm(request.POST)  # formulaire de recherche
         context['form'] = form
         if form.is_valid():
+            # si le formulaire est valide, ajout des paramètres dans l'url pour enregistrer les valeurs du formulaire
             base_url = reverse('trajet')
             query_string = urlencode(form.cleaned_data)
             url = f"{base_url}?{query_string}"
-            context["gare_arrivee_value_initial"] = request.GET.get("gare_depart", "")
-            context["made_request"] = True
             return redirect(url, context)
     else:
+        # sinon, il faut afficher les résultats dans la liste des trajets et mettre à
+        # jour les données initiales du formulaire
         reduction_form = request.GET.get("reduction", "")
         initial = {'reduction': request.user.reduction} if reduction_form == "" else {}
         form = TrajetForm(initial=initial)
@@ -200,6 +219,7 @@ def trajet(request):
         heure_depart_form = request.GET.get("heure_depart", "")
 
         if gare_depart_form != '':
+            # récupération des données du formulaire, et envoyer au html les données de gares : pour l'autocomplétion
             gare_depart = Gare.objects.get(nom=gare_depart_form)
             gare_arrivee = Gare.objects.get(nom=gare_arrivee_form)
             reduction = Reduction.objects.get(type=reduction_form)
@@ -214,11 +234,13 @@ def trajet(request):
             #     heure_depart__range=(heure_depart_form, datetime.time(23, 59)),
             #     date_depart=date_depart_form,
             # ).order_by("heure_depart")
+            # Requête de recherche de trajet correspondant au filtre appliqué
             l = [date_depart_form, int(gare_arrivee.id), int(gare_depart.id), str(heure_depart_form)]
-            trajet_list = Trajet.objects.raw("""SELECT * FROM "website_trajet" WHERE ("website_trajet"."date_depart" = %s AND
-            "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND
-            "website_trajet"."heure_depart" BETWEEN %s AND "23:59:00") ORDER BY "website_trajet"."heure_depart"
+            trajet_list = Trajet.objects.raw("""SELECT * FROM "website_trajet" WHERE ("website_trajet"."date_depart" 
+            = %s AND "website_trajet"."gare_arrivee_id" = %s AND "website_trajet"."gare_depart_id" = %s AND 
+            "website_trajet"."heure_depart" BETWEEN %s AND "23:59:00") ORDER BY "website_trajet"."heure_depart" 
             ASC""", l)
+            # fixer comme valeurs initiales du formulaire les données précédentes
             form.fields['gare_depart'].initial = gare_depart.nom
             form.fields['gare_arrivee'].initial = gare_arrivee.nom
             form.fields['date_depart'].initial = datetime.datetime.strptime(
@@ -228,6 +250,8 @@ def trajet(request):
 
             trajet_list = list(trajet_list)
             for trajet in trajet_list:
+                # Pour chaque trajet de la liste, regarder si le trajet est complet
+                # ou sinon son prix en fonction des recutions applicables
                 places_restantes = trajet.places_libres
                 if places_restantes == 0:
                     trajet.prix = "Complet"
@@ -236,7 +260,7 @@ def trajet(request):
                     date_naissance = request.user.date_naissance
                     trajet.prix = calculate_prix(trajet, reduction, date_naissance)
                     trajet.disabled = ""
-    context["made_request"] = True
+    # Pagination des trajets
     paginator = Paginator(trajet_list, 5)
     try:
         current_page = request.GET.get('page')
@@ -254,13 +278,17 @@ def trajet(request):
 
 
 def reserver(request):
+    """ Vue de réservation d'un trajet. Cette fonction est appellée via une requête asynchrone """
+    # récupération des information du formulaire du pop-up.
     trajet_id = int(request.POST.get("trajet_id"))
     nom = request.POST.get("nom")
     prenom = request.POST.get("prenom")
     if not prenom or not nom:
+        # si le nom ou prénom n'est pas défini, envoyer une erreur
         return JsonResponse({"redirect": False,
                              "message_erreur": "Veuillez entrer un nom et prénom valides"})
     date_naissance_form = request.POST.get("date_naissance")
+    # requête de la date de naissance si elle est valide
     try:
         date_naissance = datetime.datetime.strptime(date_naissance_form, '%d/%m/%Y')
     except ValueError:
@@ -268,20 +296,10 @@ def reserver(request):
                              "message_erreur": "Veuillez entrer une date valide (format : jj/mm/aaaa)"})
     reduction = Reduction.objects.get(id=request.POST.get("reduction"))
     situation = request.POST.get("situation")
-    # Réserve un trajet.
+    # Trajet associé à la reservation
     request_trajet = Trajet.objects.get(id=trajet_id)
 
-    # Trouve une place
-    # Cherche les voitures du trajet pour trouver les places
-    # voitures = Voiture.objects.filter(train=request_trajet.train)
-    # Places du trajet
-    # places_trajet = Place.objects.filter(voiture__in=voitures)
-    # Reservations associées au trajet
-    # reservations = Reservation.objects.filter(trajet=request_trajet)
-    # Places déjà réservées
-    # places_reservees = list(map(lambda x: x.place, list(reservations)))
-    # Places du trajet disponibles
-    # places_dispo = places_trajet.exclude(id__in=[p.id for p in places_reservees]).filter(situation=situation)
+    # Liste de places associé au trajet et à la situation demandée (F ou C) disponibles :
     places_dispo = Place.objects.raw("""SELECT * FROM "website_place" WHERE ("website_place"."voiture_id" IN 
     (SELECT U0."id" FROM "website_voiture" U0 WHERE U0."train_id" = %s) AND NOT 
     ("website_place"."id" IN  (SELECT U1."place_id" FROM "website_reservation" U1 WHERE U1."trajet_id" = %s)) 
@@ -296,9 +314,9 @@ def reserver(request):
     if len(places_dispo) == 0:
         # ne doit pas arriver si le formulaire n'est pas (mal) intentionnellement modifié
         raise Http404("<h1>Aucune place disponible</h1>")
-    # choix de la place en fonction de la demande de situation:
+    # choix de la place parmis celles dispo:
     place = random.choice(places_dispo)
-    print(place)
+    # création de la réservation
     new_reservation = Reservation(
         user=request.user,
         trajet=request_trajet,
@@ -310,12 +328,16 @@ def reserver(request):
         date=timezone.now(),
     )
     new_reservation.save()
-    print(new_reservation)
-    print(new_reservation.trajet)
-    return JsonResponse({"redirect": True, "new_reservation":new_reservation.id})
+    # redirection vers le html avec le numero de reservation pour que la redirection se fasse côté client
+    return JsonResponse({"redirect": True, "new_reservation": new_reservation.id})
 
 
 def trajet_prix(request):
+    """ Vue de calcul du prix d'une réservation. Cette vue est appelée durant une requête asynchrone.
+    Cette fonction est appelée à titre d'indication pour savoir le prix après réduction. Dans tous les cas, le prix
+    est déterminé lors de l'enregistrement d'une réservation """
+
+
     trajet_id = int(request.POST.get("trajet_id"))
     # reduction = Reduction.objects.get(id=request.POST.get("reduction"))
     reduction = Reduction.objects.raw(""" SELECT * FROM "website_reduction" WHERE 
@@ -330,6 +352,7 @@ def trajet_prix(request):
 
 @login_required
 def billet_generator(request, reservation_id):
+    """ Fonction de génération du billet de train en format pdf """
     # vérifie que le user est le propiétaire de la réservation
     reservation = Reservation.objects.get(pk=reservation_id)
     if request.user != reservation.user:
@@ -369,7 +392,6 @@ def billet_generator(request, reservation_id):
     p.drawString(90, 520, "Situation : ")
     p.drawString(150, 520, str(reservation.place.situation))
 
-
     # Close the PDF object cleanly, and we're done.
     p.showPage()
     p.save()
@@ -382,6 +404,8 @@ def billet_generator(request, reservation_id):
 
 @login_required
 def GareAutoComplete(request):
+    """ Vue d'autocomplétion d'une gare. Un utilisateur peut également chercher une gare via une ville """
+
     gare_text = request.POST.get("gare_text")
     # gares = Gare.objects.filter(Q(nom__icontains=gare_text) | Q(ville__nom__icontains=gare_text)).order_by("nom")
     gares = list(Gare.objects.raw("""SELECT * FROM 
@@ -394,6 +418,8 @@ def GareAutoComplete(request):
 
 @login_required
 def statistics(request):
+    """ Vue de statistique sur ses trajets. """
+
     context = {}
     # my_resa = Reservation.objects.filter(user=request.user)
     my_resa = Reservation.objects.raw("""SELECT * FROM "website_reservation" WHERE 
@@ -403,8 +429,7 @@ def statistics(request):
         return render(request, 'statistics.html', context)
     prices = list(map(lambda x: x.prix, my_resa))
     dates = list(map(lambda x: x.trajet.date_depart, my_resa))
-    df_prix = pd.DataFrame({'prix': prices, 'date':dates})
-    # print(df_prix)
+    df_prix = pd.DataFrame({'prix': prices, 'date': dates})
 
     fig_prix = px.line(df_prix, x='date', y='prix')
     fig_prix.update_layout(
@@ -419,4 +444,5 @@ def statistics(request):
 
 
 def handler404(request, exception):
+    """ Vue d'erreur 404 avec un template custom """
     return render(request, '404.html', status=404)

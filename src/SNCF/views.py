@@ -250,7 +250,7 @@ def trajet(request):
             form.fields['heure_depart'].initial = heure_depart_form
             form.fields['reduction'].initial = reduction
 
-            trajet_list = list(trajet_list)
+            # trajet_list = list(trajet_list)
             for trajet in trajet_list:
                 # Pour chaque trajet de la liste, regarder si le trajet est complet
                 # ou sinon son prix en fonction des recutions applicables
